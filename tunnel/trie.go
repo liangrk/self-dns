@@ -97,6 +97,13 @@ func (m *MmapTrie) ContainsOrParent(domain string) bool {
 }
 
 // matchWithWildcard recursively checks exact and wildcard matches.
+//
+// Wildcards live in the trie as labels beginning with '*':
+//   - "*"        matches any single label (whole-label wildcard)
+//   - "*-ad"     matches any label ending with "-ad" (label-tail glob)
+//
+// Both are resolved in the same child scan as exact labels so the hot
+// path stays a single pass per node.
 func (m *MmapTrie) matchWithWildcard(nodeOffset int, labels []string, index int) bool {
 	if index < 0 {
 		return false
@@ -107,8 +114,9 @@ func (m *MmapTrie) matchWithWildcard(nodeOffset int, labels []string, index int)
 
 	targetLabel := labels[index]
 
+	exactOffset, globOffset := m.findChildAndGlobOffset(nodeOffset, targetLabel)
+
 	// 1. Try exact label match
-	exactOffset := m.findChildOffset(nodeOffset, targetLabel)
 	if exactOffset != -1 {
 		if m.isTerminal(exactOffset) {
 			return true
@@ -118,13 +126,12 @@ func (m *MmapTrie) matchWithWildcard(nodeOffset int, labels []string, index int)
 		}
 	}
 
-	// 2. Try wildcard `*` match
-	wildcardOffset := m.findChildOffset(nodeOffset, "*")
-	if wildcardOffset != -1 {
-		if m.isTerminal(wildcardOffset) {
+	// 2. Try glob label match ("*" or "*suffix")
+	if globOffset != -1 {
+		if m.isTerminal(globOffset) {
 			return true
 		}
-		if m.matchWithWildcard(wildcardOffset, labels, index-1) {
+		if m.matchWithWildcard(globOffset, labels, index-1) {
 			return true
 		}
 	}
@@ -139,9 +146,18 @@ func (m *MmapTrie) isTerminal(nodeOffset int) bool {
 	return m.buffer[nodeOffset] != 0
 }
 
-func (m *MmapTrie) findChildOffset(nodeOffset int, targetLabel string) int {
+// findChildAndGlobOffset makes a single scan over a node's children and
+// returns both the exact-label child and the first glob child whose pattern
+// matches the target label. Glob labels start with '*':
+//
+//	"*"      matches any label (whole-label wildcard)
+//	"*-ad"   matches labels ending with "-ad" (label-tail glob)
+//
+// Returns -1 for each component that has no match.
+func (m *MmapTrie) findChildAndGlobOffset(nodeOffset int, targetLabel string) (exact int, glob int) {
+	exact, glob = -1, -1
 	if nodeOffset < 0 || nodeOffset+5 > m.limit {
-		return -1
+		return
 	}
 
 	targetBytes := []byte(targetLabel)
@@ -155,16 +171,27 @@ func (m *MmapTrie) findChildOffset(nodeOffset int, targetLabel string) int {
 
 	for c := 0; c < childCount; c++ {
 		if pos+2 > m.limit {
-			return -1 // buffer too short
+			return // buffer too short
 		}
 		labelLen := int(binary.BigEndian.Uint16(m.buffer[pos : pos+2]))
 		pos += 2
 
 		if pos+labelLen+4 > m.limit {
-			return -1 // corrupted data
+			return // corrupted data
 		}
 
-		if labelLen == targetLen {
+		if labelLen > 0 && m.buffer[pos] == '*' {
+			// Glob child: "*" matches any label, "*suffix" by suffix
+			if glob == -1 {
+				suffix := string(m.buffer[pos+1 : pos+labelLen])
+				if suffix == "" || strings.HasSuffix(targetLabel, suffix) {
+					childOffset := int(binary.BigEndian.Uint32(m.buffer[pos+labelLen : pos+labelLen+4]))
+					if childOffset >= headerSize && childOffset < m.limit {
+						glob = childOffset
+					}
+				}
+			}
+		} else if labelLen == targetLen {
 			match := true
 			for b := 0; b < labelLen; b++ {
 				if m.buffer[pos+b] != targetBytes[b] {
@@ -174,16 +201,14 @@ func (m *MmapTrie) findChildOffset(nodeOffset int, targetLabel string) int {
 			}
 			if match {
 				childOffset := int(binary.BigEndian.Uint32(m.buffer[pos+labelLen : pos+labelLen+4]))
-				if childOffset < headerSize || childOffset >= m.limit {
-					// Invalid offset
-					return -1
+				if childOffset >= headerSize && childOffset < m.limit {
+					exact = childOffset
 				}
-				return childOffset
 			}
 		}
 
 		pos += labelLen + 4 // skip label bytes + child offset
 	}
 
-	return -1 // label not found
+	return
 }

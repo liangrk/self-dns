@@ -58,10 +58,19 @@ func CompileFilterList(inputPath, triePath, bloomPath string) (int, error) {
 		return 0, fmt.Errorf("write trie: %w", err)
 	}
 
-	// Build bloom filter
+	// Build bloom filter. Glob rules cannot be looked up by their raw
+	// pattern — the query side only ever probes real parent-domain
+	// suffixes — so a glob rule is indexed by its base domain
+	// ("*-ad.example.com" → "example.com"). False bloom positives for
+	// sibling domains are fine: the trie does the exact glob match, the
+	// bloom only gates whether the trie is consulted at all.
 	bloom := NewBloomBuilder(count, 0.001)
 	for d := range domains {
-		bloom.Add(d)
+		if base, ok := globBaseDomain(d); ok {
+			bloom.Add(base)
+		} else {
+			bloom.Add(d)
+		}
 	}
 	if err := bloom.SaveToFile(bloomPath); err != nil {
 		return 0, fmt.Errorf("write bloom: %w", err)
@@ -127,6 +136,15 @@ func parseDomainLine(line string) string {
 	if domain == "" || !strings.Contains(domain, ".") {
 		return ""
 	}
+	// Glob rules ("*" leading the leftmost label, e.g. "*-ad.example.com"
+	// or "*.example.com") are validated strictly and kept in glob form —
+	// the trie stores the glob label literally and the matcher resolves it.
+	if strings.Contains(domain, "*") {
+		if !validGlobDomain(domain) {
+			return ""
+		}
+		return domain
+	}
 	if domain == "localhost" || domain == "localhost.localdomain" ||
 		domain == "local" || domain == "broadcasthost" {
 		return ""
@@ -137,6 +155,66 @@ func parseDomainLine(line string) string {
 	}
 
 	return domain
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Glob Rule Validation — "*" leading the leftmost label
+// ─────────────────────────────────────────────────────────────────────────────
+
+const globLabelChars = "abcdefghijklmnopqrstuvwxyz0123456789-_"
+
+// validGlobDomain validates a glob rule domain: '*' must lead the leftmost
+// label exactly once and the remainder must look like a plain domain
+// ("*-ad.example.com", "*.example.com"). Anything else is rejected so a
+// malformed pattern can never silently become a dead literal in the trie.
+func validGlobDomain(d string) bool {
+	rest, ok := strings.CutPrefix(d, "*")
+	if !ok {
+		return false // '*' not leading
+	}
+	if strings.Contains(rest, "*") {
+		return false // more than one '*'
+	}
+	globLabel, base, found := strings.Cut(rest, ".")
+	if !found {
+		return false // no base domain after the glob label
+	}
+	for _, ch := range globLabel {
+		if !strings.ContainsRune(globLabelChars, ch) {
+			return false
+		}
+	}
+	if base == "" || !strings.Contains(base, ".") {
+		return false // base must have at least label + TLD
+	}
+	for _, label := range strings.Split(base, ".") {
+		if label == "" {
+			return false
+		}
+		for _, ch := range label {
+			if !strings.ContainsRune(globLabelChars, ch) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// globBaseDomain returns the parent suffix of a glob rule used as its bloom
+// key: "*-ad.example.com" → "example.com". ok=false for plain domains.
+func globBaseDomain(d string) (string, bool) {
+	if !strings.HasPrefix(d, "*") || strings.IndexByte(d[1:], '*') != -1 {
+		return "", false
+	}
+	idx := strings.IndexByte(d, '.')
+	if idx < 0 {
+		return "", false
+	}
+	base := d[idx+1:]
+	if base == "" {
+		return "", false
+	}
+	return base, true
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

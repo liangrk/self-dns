@@ -52,7 +52,7 @@ class FilterListRepository(
         private const val CN_RULES_TTL_MS = 24 * 60 * 60 * 1000L
 
         /** Domain count recorded when the bundled CN rules were compiled. */
-        const val BUNDLED_CN_RULES_COUNT = 108452
+        const val BUNDLED_CN_RULES_COUNT = 108430
 
         private const val FILTER_LIST_JSON_URL =
             "https://raw.githubusercontent.com/pass-with-high-score/blockads-default-filter/refs/heads/main/output/filter_lists.json"
@@ -123,8 +123,10 @@ class FilterListRepository(
 
     fun hasCustomRule(domain: String): Long {
         if (checkDomainAndParents(domain) { customAllowDomains.contains(it) }) return 0L
-        if (checkDomainAndParents(domain) { whitelistedDomains.contains(it) }) return 0L
+        // Same priority order as [isBlocked] / [getBlockReason]: a custom
+        // block rule outranks the whitelist, it must not be shadowed here.
         if (checkDomainAndParents(domain) { customBlockDomains.contains(it) }) return 1L
+        if (checkDomainAndParents(domain) { whitelistedDomains.contains(it) }) return 0L
         return -1L
     }
 
