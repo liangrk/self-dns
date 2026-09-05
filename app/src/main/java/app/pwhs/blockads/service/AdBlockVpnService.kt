@@ -381,6 +381,9 @@ class AdBlockVpnService : VpnService() {
                 connectingPhase = getString(R.string.vpn_phase_loading_filters)
                 updateNotification()
 
+                // Zero-network: upgrade-installed bundled rules must be on disk
+                // BEFORE the engine loads, or the first minutes run stale rules.
+                filterRepo.bootstrapBundledCnRulesIfNeeded()
                 // Load whitelist + custom rules (fast, small sets) BEFORE the large filter trie
                 // This ensures they are immediately available for the Go engine.
                 filterRepo.loadWhitelist()

@@ -455,40 +455,9 @@ class FilterListRepository(
      * sentinel, which FilterDownloadManager already understands.
      */
     suspend fun seedCnRulesIfNeeded() = withContext(Dispatchers.IO) {
-        val existing = filterListDao.getByOriginalUrl(CN_RULES_DIST_URL)
-        val filter = existing ?: run {
-            val insertedId = filterListDao.insert(
-                FilterList(
-                    name = CN_RULES_NAME,
-                    url = CN_RULES_DIST_URL,
-                    originalUrl = CN_RULES_DIST_URL,
-                    description = "CN ad domains (Douyin/Kuaishou/JD/Zhihu/Amap + major ad SDK vendors)",
-                    isEnabled = true,
-                    isBuiltIn = true,
-                    category = FilterList.CATEGORY_AD,
-                    region = FilterList.REGION_CN
-                )
-            )
-            filterListDao.getById(insertedId)
-        }
-        if (filter == null) return@withContext
-
-        // 1) Bootstrap from the APK-bundled compiled artifacts when local
-        //    files are missing (first launch / cleared data) OR when the
-        //    existing rules predate this APK build (upgrade path: the
-        //    overlay install keeps the old DB, so the newer bundled rules
-        //    must replace them). Zero network: works offline.
-        val olderThanThisApk = try {
-            filter.lastUpdated <
-                context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
-        } catch (e: Exception) {
-            false
-        }
-        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() ||
-            !cnCompiledFilesExist(filter) || olderThanThisApk
-        ) {
-            if (installBundledCnRules(filter)) return@withContext
-        }
+        bootstrapBundledCnRulesIfNeeded()
+        val filter = filterListDao.getByOriginalUrl(CN_RULES_DIST_URL)
+            ?: return@withContext
 
         // 2) Daily refresh from the rules repo (bundled copy is refreshed
         //    by the TTL path once the network allows).
@@ -504,6 +473,47 @@ class FilterListRepository(
                 File(context.filesDir, "remote_filters/cn_allowlist.txt")
             )
         }
+    }
+
+    /**
+     * Zero-network bootstrap: make sure the CN list row exists and the
+     * compiled trie/bloom on disk match this APK build. Called BEFORE the
+     * engine starts so an app upgrade serves the new rules from the very
+     * first DNS query instead of the ~1-minute stale window.
+     */
+    suspend fun bootstrapBundledCnRulesIfNeeded() = withContext(Dispatchers.IO) {
+        val filter = ensureCnFilterRow()
+        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() ||
+            !cnCompiledFilesExist(filter) || cnRulesOlderThanApk(filter)
+        ) {
+            installBundledCnRules(filter)
+        }
+    }
+
+    private suspend fun ensureCnFilterRow(): FilterList {
+        filterListDao.getByOriginalUrl(CN_RULES_DIST_URL)?.let { return it }
+        val insertedId = filterListDao.insert(
+            FilterList(
+                name = CN_RULES_NAME,
+                url = CN_RULES_DIST_URL,
+                originalUrl = CN_RULES_DIST_URL,
+                description = "CN ad domains (Douyin/Kuaishou/JD/Zhihu/Amap + major ad SDK vendors)",
+                isEnabled = true,
+                isBuiltIn = true,
+                category = FilterList.CATEGORY_AD,
+                region = FilterList.REGION_CN
+            )
+        )
+        return filterListDao.getById(insertedId) ?: run {
+            throw IllegalStateException("CN filter row disappeared right after insert")
+        }
+    }
+
+    private fun cnRulesOlderThanApk(filter: FilterList): Boolean = try {
+        filter.lastUpdated <
+            context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+    } catch (e: Exception) {
+        false
     }
 
     private suspend fun compileCnFilter(filter: FilterList) = withContext(Dispatchers.IO) {

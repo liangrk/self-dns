@@ -200,6 +200,8 @@ class RootProxyService : Service() {
             try {
                 // 1. Load filters (same as VPN mode) — local cache only; network
                 // sync runs in the background AFTER the engine is up.
+                // Zero-network: bundled-rule upgrade must land before engine load.
+                filterRepo.bootstrapBundledCnRulesIfNeeded()
                 filterRepo.loadWhitelist()
                 filterRepo.loadCustomRules()
                 val result = filterRepo.loadAllEnabledFilters()
