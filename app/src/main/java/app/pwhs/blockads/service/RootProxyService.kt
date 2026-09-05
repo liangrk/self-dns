@@ -308,10 +308,11 @@ class RootProxyService : Service() {
                     // re-load the whitelist so the protection takes effect immediately.
                     filterRepo.loadWhitelist()
                     filterRepo.loadAllEnabledFilters()
-                    if (filterRepo.getTriePathsSnapshot() != triesAtStart) {
-                        Timber.d("Filter data changed after background sync - pushing tries")
-                        goTunnelAdapter.updateTries()
-                    }
+                    // Always re-push: bundled-rule upgrades overwrite the trie/bloom
+                    // files in place (same paths), so the path snapshot cannot detect
+                    // the change. An unconditional reload costs one mmap swap.
+                    Timber.d("Background sync done — re-pushing tries unconditionally")
+                    goTunnelAdapter.updateTries()
                 }
 
                 updateNotification()
