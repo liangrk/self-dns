@@ -527,4 +527,6 @@
     <string name="https_filtering_http3_title">กรอง HTTP/3 (QUIC)</string>
     <string name="https_filtering_http3_desc">บล็อก QUIC ของเบราว์เซอร์เพื่อบังคับการเชื่อมต่อที่กรองได้สำหรับการกรองโฆษณาสูงสุด อาจทำให้บางหน้าโหลดเพียงบางส่วน ปิดหากหน้าเว็บโหลดไม่สมบูรณ์</string>
     <string name="log_record_logs">บันทึกประวัติ</string>
+    <string name="settings_ads_only">โฆษณาเท่านั้น</string>
+    <string name="settings_ads_only_desc">บล็อกเฉพาะโฆษณา ปิดรายการสำหรับผู้ใหญ่ การพนัน และความปลอดภัย รวมถึง SafeSearch และโหมดจำกัดของ YouTube</string>
 </resources>

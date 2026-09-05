@@ -527,4 +527,6 @@
     <string name="settings_hide_from_recents_subtitle">BlockAds-ты соңғы қолданбалар экранынан жасыру</string>
     <string name="home_disconnecting_desc_root">Root Proxy тоқтатылуда…</string>
     <string name="log_record_logs">Журналдарды жазу</string>
+    <string name="settings_ads_only">Тек жарнама</string>
+    <string name="settings_ads_only_desc">Тек жарнаманы бұғаттау. Ересектер, құмар ойындар және қауіпсіздік тізімдері, қауіпсіз іздеу және YouTube шектеулі режимі өшіріледі.</string>
 </resources>

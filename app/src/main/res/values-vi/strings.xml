@@ -527,4 +527,6 @@
     <string name="https_filtering_http3_title">Lọc HTTP/3 (QUIC)</string>
     <string name="https_filtering_http3_desc">Chặn QUIC của trình duyệt để buộc các kết nối có thể lọc nhằm đạt được khả năng lọc quảng cáo tối đa. Có thể khiến một số trang chỉ tải một phần. Hãy tắt nếu các trang không tải hoàn toàn.</string>
     <string name="log_record_logs">Ghi nhật ký</string>
+    <string name="settings_ads_only">Chỉ quảng cáo</string>
+    <string name="settings_ads_only_desc">Chỉ chặn quảng cáo. Tắt danh sách người lớn, cờ bạc và bảo mật cũng như SafeSearch và chế độ hạn chế YouTube.</string>
 </resources>

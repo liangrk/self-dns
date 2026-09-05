@@ -527,4 +527,6 @@
     <string name="https_filtering_http3_title">HTTP/3 (QUIC) filtern</string>
     <string name="https_filtering_http3_desc">Browser-QUIC blockieren, um filterbare Verbindungen für maximale Werbefilterung zu erzwingen. Kann dazu führen, dass einige Seiten nur teilweise geladen werden. Deaktivieren Sie dies, wenn Seiten nicht vollständig geladen werden.</string>
     <string name="log_record_logs">Protokolle aufzeichnen</string>
+    <string name="settings_ads_only">Nur Werbung</string>
+    <string name="settings_ads_only_desc">Blockiert nur Werbung. Deaktiviert Erwachsenen-, Glücksspiel- und Sicherheitslisten sowie SafeSearch und den eingeschränkten YouTube-Modus.</string>
 </resources>

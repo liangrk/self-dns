@@ -527,4 +527,6 @@
     <string name="https_filtering_http3_title">Filtruj HTTP/3 (QUIC)</string>
     <string name="https_filtering_http3_desc">Zablokuj QUIC w przeglądarce, aby wymusić połączenia z możliwością filtrowania dla maksymalnego filtrowania reklam. Może to spowodować częściowe załadowanie niektórych stron. Wyłącz, jeśli strony nie ładują się w pełni.</string>
     <string name="log_record_logs">Rejestruj logi</string>
+    <string name="settings_ads_only">Tylko reklamy</string>
+    <string name="settings_ads_only_desc">Blokuje tylko reklamy. Wyłącza listy dla dorosłych, hazardu i bezpieczeństwa oraz SafeSearch i tryb ograniczony YouTube.</string>
 </resources>

@@ -527,4 +527,6 @@
     <string name="https_filtering_http3_title">סנן HTTP/3 (QUIC)</string>
     <string name="https_filtering_http3_desc">חסום QUIC בדפדפן כדי לאלץ חיבורים ניתנים לסינון לסינון פרסומות מרבי. עלול לגרום לטעינה חלקית של דפים מסוימים. כבה אם דפים לא נטענים במלואם.</string>
     <string name="log_record_logs">רשום יומנים</string>
+    <string name="settings_ads_only">מודעות בלבד</string>
+    <string name="settings_ads_only_desc">חוסם מודעות בלבד. משבית רשימות למבוגרים, הימורים ואבטחה וכן חיפוש בטוח ומצב מוגבל של YouTube.</string>
 </resources>
