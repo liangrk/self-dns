@@ -1,0 +1,7 @@
+{
+  "tool_name": "mcp__zai-mcp-server__analyze_image",
+  "tool_input_preview": "{\"image_source\":\"/tmp/dy_1.png\",\"prompt\":\"这是安卓手机屏幕截图。请描述当前界面:是抖音的什么页面(首页/推荐流/开屏广告/登录页/弹窗)?屏幕上是否有广告痕迹(广告标签、推广内容、营销内容)?请简要回答。\"}",
+  "error": "Error: Image file not found: File not found: Image file not found: /tmp/dy_1.png",
+  "timestamp": "2026-09-05T14:38:03.827Z",
+  "retry_count": 1
+}

@@ -1,0 +1,261 @@
+package app.pwhs.blockads.di
+
+import app.pwhs.blockads.BuildConfig
+import app.pwhs.blockads.data.AppDatabase
+import app.pwhs.blockads.data.datastore.AppPreferences
+import app.pwhs.blockads.data.entities.ProfileManager
+import app.pwhs.blockads.data.remote.FilterDownloadManager
+import app.pwhs.blockads.data.remote.api.CustomFilterApi
+import app.pwhs.blockads.data.repository.CustomFilterManager
+import app.pwhs.blockads.data.repository.FilterListRepository
+import app.pwhs.blockads.ui.dnsprovider.DnsProviderViewModel
+import app.pwhs.blockads.ui.filter.detail.FilterDetailViewModel
+import app.pwhs.blockads.ui.filter.FilterSetupViewModel
+import app.pwhs.blockads.ui.home.HomeViewModel
+import app.pwhs.blockads.ui.logs.LogViewModel
+import app.pwhs.blockads.ui.onboarding.OnboardingViewModel
+import app.pwhs.blockads.ui.profile.ProfileViewModel
+import app.pwhs.blockads.ui.appearance.AppearanceViewModel
+import app.pwhs.blockads.ui.settings.SettingsViewModel
+import app.pwhs.blockads.ui.statistics.StatisticsViewModel
+import app.pwhs.blockads.ui.whitelist.AppWhitelistViewModel
+import app.pwhs.blockads.ui.appmanagement.AppManagementViewModel
+import app.pwhs.blockads.ui.customrules.CustomRulesViewModel
+import app.pwhs.blockads.ui.domainrules.DomainRulesViewModel
+import app.pwhs.blockads.ui.firewall.FirewallViewModel
+import app.pwhs.blockads.ui.splash.SplashViewModel
+import app.pwhs.blockads.ui.wireguard.WireGuardEditViewModel
+import app.pwhs.blockads.ui.wireguard.WireGuardImportViewModel
+import app.pwhs.blockads.ui.httpsfiltering.HttpsFilteringViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.cio.endpoint
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
+import org.koin.android.ext.koin.androidApplication
+import org.koin.android.ext.koin.androidContext
+import org.koin.core.module.dsl.viewModel
+import org.koin.dsl.module
+import timber.log.Timber
+
+val appModule = module {
+
+    // HTTP Client
+    single {
+        HttpClient(CIO) {
+            engine {
+                requestTimeout = 60_000
+                endpoint {
+                    connectTimeout = 30_000
+                }
+            }
+
+            install(Logging) {
+                logger = object : Logger {
+                    override fun log(message: String) {
+                        Timber.d(message)
+                    }
+                }
+                val logLevel = if (BuildConfig.DEBUG) LogLevel.INFO else LogLevel.NONE
+                level = logLevel
+            }
+
+            install(HttpTimeout) {
+                requestTimeoutMillis = 60_000
+                connectTimeoutMillis = 30_000
+            }
+        }
+    }
+
+    // DNS Clients (Removed - now handled by Go tunnel)
+
+    // Database
+    single { AppDatabase.getInstance(androidContext()) }
+    single { get<AppDatabase>().dnsLogDao() }
+    single { get<AppDatabase>().filterListDao() }
+    single { get<AppDatabase>().whitelistDomainDao() }
+    single { get<AppDatabase>().dnsErrorDao() }
+    single { get<AppDatabase>().customDnsRuleDao() }
+    single { get<AppDatabase>().protectionProfileDao() }
+    single { get<AppDatabase>().firewallRuleDao() }
+
+    // Preferences
+    single { AppPreferences(androidContext()) }
+
+    // Repository
+    single { FilterDownloadManager(androidContext(), get()) }
+    single {
+        FilterListRepository(
+            context = androidContext(),
+            filterListDao = get(),
+            whitelistDomainDao = get(),
+            customDnsRuleDao = get(),
+            client = get(),
+            downloadManager = get(),
+            appPrefs = get()
+        )
+    }
+    single { CustomFilterApi(get()) }
+    single {
+        CustomFilterManager(
+            context = androidContext(),
+            client = get(),
+            filterListDao = get(),
+            customFilterApi = get()
+        )
+    }
+
+    // Profile Manager
+    single {
+        ProfileManager(
+            profileDao = get(),
+            filterListDao = get(),
+            appPrefs = get(),
+            filterRepo = get()
+        )
+    }
+
+    // ViewModels
+    viewModel {
+        HomeViewModel(
+            appPrefs = get(),
+            dnsLogDao = get(),
+            filterRepo = get(),
+            profileDao = get(),
+            filterListDao = get()
+        )
+    }
+    viewModel { StatisticsViewModel(dnsLogDao = get()) }
+    viewModel {
+        LogViewModel(
+            dnsLogDao = get(),
+            filterListDao = get(),
+            whitelistDomainDao = get(),
+            customDnsRuleDao = get(),
+            filterListRepository = get(),
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        SettingsViewModel(
+            appPrefs = get(),
+            filterRepo = get(),
+            dnsLogDao = get(),
+            whitelistDomainDao = get(),
+            filterListDao = get(),
+            customDnsRuleDao = get(),
+            profileDao = get(),
+            profileManager = get(),
+            firewallRuleDao = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        FilterSetupViewModel(
+            filterRepo = get(),
+            filterListDao = get(),
+            customFilterManager = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel { (filterId: Long) ->
+        FilterDetailViewModel(
+            filterId = filterId,
+            filterListDao = get(),
+            dnsLogDao = get(),
+            filterRepo = get(),
+            application = androidApplication(),
+            customFilterManager = get()
+        )
+    }
+    viewModel {
+        AppWhitelistViewModel(
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        app.pwhs.blockads.ui.trustednetworks.TrustedNetworksViewModel(
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        CustomRulesViewModel(
+            customDnsRuleDao = get(),
+            filterListRepository = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        DnsProviderViewModel(
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        AppManagementViewModel(
+            appPrefs = get(),
+            dnsLogDao = get(),
+            application = androidApplication(),
+        )
+    }
+    viewModel {
+        OnboardingViewModel(
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        ProfileViewModel(
+            profileManager = get(),
+            profileDao = get(),
+            filterListDao = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        FirewallViewModel(
+            appPrefs = get(),
+            firewallRuleDao = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        AppearanceViewModel(
+            appPrefs = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        SplashViewModel(
+            appPrefs = get(),
+        )
+    }
+    viewModel {
+        DomainRulesViewModel(
+            whitelistDomainDao = get(),
+            customDnsRuleDao = get(),
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        WireGuardImportViewModel(
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        WireGuardEditViewModel(
+            application = androidApplication()
+        )
+    }
+    viewModel {
+        HttpsFilteringViewModel(
+            application = androidApplication()
+        )
+    }
+}
+

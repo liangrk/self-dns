@@ -1,0 +1,264 @@
+{
+  "version": "1.0.0",
+  "lastScanned": 1788608994413,
+  "projectRoot": "Z:\\hacker_project\\self-dns",
+  "techStack": {
+    "languages": [
+      {
+        "name": "Kotlin",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "build.gradle.kts"
+        ]
+      },
+      {
+        "name": "Ruby",
+        "version": null,
+        "confidence": "high",
+        "markers": [
+          "Gemfile"
+        ]
+      }
+    ],
+    "frameworks": [],
+    "packageManager": "bundler",
+    "runtime": null
+  },
+  "build": {
+    "buildCommand": null,
+    "testCommand": null,
+    "lintCommand": null,
+    "devCommand": null,
+    "scripts": {}
+  },
+  "conventions": {
+    "namingStyle": null,
+    "importStyle": null,
+    "testPattern": null,
+    "fileOrganization": null
+  },
+  "structure": {
+    "isMonorepo": false,
+    "workspaces": [],
+    "mainDirectories": [
+      "app",
+      "docs",
+      "scripts"
+    ],
+    "gitBranches": {
+      "defaultBranch": "main",
+      "branchingStrategy": null
+    }
+  },
+  "customNotes": [],
+  "directoryMap": {
+    "app": {
+      "path": "app",
+      "purpose": "Application code",
+      "fileCount": 3,
+      "lastAccessed": 1788608994366,
+      "keyFiles": [
+        "build.gradle.kts",
+        "proguard-rules.pro"
+      ]
+    },
+    "blockads-android": {
+      "path": "blockads-android",
+      "purpose": null,
+      "fileCount": 0,
+      "lastAccessed": 1788608994367,
+      "keyFiles": []
+    },
+    "blockadstv": {
+      "path": "blockadstv",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1788608994367,
+      "keyFiles": [
+        "build.gradle.kts",
+        "proguard-rules.pro"
+      ]
+    },
+    "docs": {
+      "path": "docs",
+      "purpose": "Documentation",
+      "fileCount": 1,
+      "lastAccessed": 1788608994368,
+      "keyFiles": [
+        "backend-scriptlets.md"
+      ]
+    },
+    "fastlane": {
+      "path": "fastlane",
+      "purpose": null,
+      "fileCount": 3,
+      "lastAccessed": 1788608994368,
+      "keyFiles": [
+        "Appfile",
+        "Fastfile",
+        "Pluginfile"
+      ]
+    },
+    "gradle": {
+      "path": "gradle",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1788608994369,
+      "keyFiles": [
+        "libs.versions.toml"
+      ]
+    },
+    "metadata": {
+      "path": "metadata",
+      "purpose": null,
+      "fileCount": 1,
+      "lastAccessed": 1788608994369,
+      "keyFiles": [
+        "app.pwhs.blockads.yml"
+      ]
+    },
+    "scripts": {
+      "path": "scripts",
+      "purpose": "Build/utility scripts",
+      "fileCount": 1,
+      "lastAccessed": 1788608994370,
+      "keyFiles": [
+        "build_tunnel.sh"
+      ]
+    },
+    "tunnel": {
+      "path": "tunnel",
+      "purpose": null,
+      "fileCount": 35,
+      "lastAccessed": 1788608994370,
+      "keyFiles": [
+        "blocker.go",
+        "bloom.go",
+        "compiler.go",
+        "conn_log.go",
+        "conn_log_test.go"
+      ]
+    },
+    "app\\schemas": {
+      "path": "app\\schemas",
+      "purpose": "Schema definitions",
+      "fileCount": 0,
+      "lastAccessed": 1788608994371,
+      "keyFiles": []
+    },
+    "app\\src": {
+      "path": "app\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1788608994371,
+      "keyFiles": []
+    },
+    "blockadstv\\src": {
+      "path": "blockadstv\\src",
+      "purpose": "Source code",
+      "fileCount": 0,
+      "lastAccessed": 1788608994371,
+      "keyFiles": []
+    }
+  },
+  "hotPaths": [
+    {
+      "path": "tunnel/engine.go",
+      "accessCount": 2,
+      "lastAccessed": 1788609369514,
+      "type": "file"
+    },
+    {
+      "path": ".agent/skills/blockads-dev/SKILL.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609028581,
+      "type": "file"
+    },
+    {
+      "path": ".agent/skills/blockads-dev/references/architecture.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609037127,
+      "type": "file"
+    },
+    {
+      "path": ".agent/skills/blockads-dev/references/gomobile-interop.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609037656,
+      "type": "file"
+    },
+    {
+      "path": ".agent/skills/blockads-dev/references/root-proxy.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609038165,
+      "type": "file"
+    },
+    {
+      "path": "C:/Users/liangrk/.claude/plans/pure-painting-comet.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609160584,
+      "type": "file"
+    },
+    {
+      "path": "CLAUDE.md",
+      "accessCount": 1,
+      "lastAccessed": 1788609203366,
+      "type": "file"
+    },
+    {
+      "path": "app/src/main/java/app/pwhs/blockads/ui/onboarding/data/ProtectionLevel.kt",
+      "accessCount": 1,
+      "lastAccessed": 1788609299171,
+      "type": "file"
+    },
+    {
+      "path": "app/src/main/java/app/pwhs/blockads/data/entities/ProfileManager.kt",
+      "accessCount": 1,
+      "lastAccessed": 1788609299872,
+      "type": "file"
+    },
+    {
+      "path": "tunnel/mitm_filter.go",
+      "accessCount": 1,
+      "lastAccessed": 1788609342558,
+      "type": "file"
+    },
+    {
+      "path": "tunnel/compiler.go",
+      "accessCount": 1,
+      "lastAccessed": 1788609395006,
+      "type": "file"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-09-05-ad-blocking-optimization-design.md",
+      "accessCount": 1,
+      "lastAccessed": 1788610173968,
+      "type": "file"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-09-05-cn-rules-and-startup-fix.md",
+      "accessCount": 1,
+      "lastAccessed": 1788610776322,
+      "type": "file"
+    },
+    {
+      "path": "app/src/test/java/app/pwhs/blockads/FilterRulesMapperTest.kt",
+      "accessCount": 1,
+      "lastAccessed": 1788611655890,
+      "type": "file"
+    },
+    {
+      "path": "app/src/main/java/app/pwhs/blockads/ui/settings/component/ProtectionSection.kt",
+      "accessCount": 1,
+      "lastAccessed": 1788611838230,
+      "type": "file"
+    },
+    {
+      "path": "app/src/main/java/app/pwhs/blockads/utils/CrashReportingManager.kt",
+      "accessCount": 1,
+      "lastAccessed": 1788618925707,
+      "type": "file"
+    }
+  ],
+  "userDirectives": []
+}

@@ -1,0 +1,7 @@
+{
+  "tool_name": "Bash",
+  "tool_input_preview": "{\"command\":\"cd \\\"Z:/hacker_project/self-dns\\\" && shopt -s dotglob && mv blockads-android/* . && rmdir blockads-android && ls -A\",\"description\":\"移动仓库所有文件(含隐藏文件)到当前目录并删除空文件夹\"}",
+  "error": "Exit code 1\nmv: cannot move 'blockads-android/.omc' to './.omc': Directory not empty",
+  "timestamp": "2026-09-05T11:49:24.758Z",
+  "retry_count": 1
+}
