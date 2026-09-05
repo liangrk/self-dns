@@ -156,6 +156,9 @@ class ProfileManager(
 
         val allFilters = filterListDao.getAllSync()
         for (filter in allFilters) {
+            // Region-aware lists (e.g. BlockAds CN Ads) are managed independently
+            // and must survive preset switching.
+            if (filter.region == FilterList.REGION_CN) continue
             val shouldBeEnabled = filter.url in profileUrls
             if (filter.isEnabled != shouldBeEnabled) {
                 filterListDao.setEnabled(filter.id, shouldBeEnabled)

@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import app.pwhs.blockads.R
 import app.pwhs.blockads.data.entities.FilterList
 import app.pwhs.blockads.data.repository.FilterListRepository
-import java.util.Locale
+import androidx.compose.ui.platform.LocalConfiguration
 import app.pwhs.blockads.ui.theme.TextSecondary
 import app.pwhs.blockads.utils.formatCount
 import app.pwhs.blockads.utils.formatDate
@@ -95,7 +95,8 @@ fun FilterItem(
             // Region / category / recommendation badges
             val showRegionBadge = filter.region == FilterList.REGION_CN
             val showCategoryBadge = filter.category != FilterList.CATEGORY_AD
-            val showRecommendedBadge = Locale.getDefault().language == "zh" &&
+            val isZhLocale = LocalConfiguration.current.locales.get(0).language == "zh"
+            val showRecommendedBadge = isZhLocale &&
                 filter.name == FilterListRepository.CN_RULES_NAME
             if (showRegionBadge || showCategoryBadge || showRecommendedBadge) {
                 Spacer(modifier = Modifier.height(4.dp))
