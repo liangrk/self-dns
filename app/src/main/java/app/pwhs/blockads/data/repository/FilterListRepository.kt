@@ -474,9 +474,19 @@ class FilterListRepository(
         if (filter == null) return@withContext
 
         // 1) Bootstrap from the APK-bundled compiled artifacts when local
-        //    files are missing (first launch / cleared data). Zero network:
-        //    works offline and behind slow GitHub links on CN networks.
-        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() || !cnCompiledFilesExist(filter)) {
+        //    files are missing (first launch / cleared data) OR when the
+        //    existing rules predate this APK build (upgrade path: the
+        //    overlay install keeps the old DB, so the newer bundled rules
+        //    must replace them). Zero network: works offline.
+        val olderThanThisApk = try {
+            filter.lastUpdated <
+                context.packageManager.getPackageInfo(context.packageName, 0).lastUpdateTime
+        } catch (e: Exception) {
+            false
+        }
+        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() ||
+            !cnCompiledFilesExist(filter) || olderThanThisApk
+        ) {
             if (installBundledCnRules(filter)) return@withContext
         }
 
