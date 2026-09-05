@@ -529,4 +529,8 @@
     <string name="log_record_logs">Rekam Log</string>
     <string name="settings_ads_only">Hanya iklan</string>
     <string name="settings_ads_only_desc">Hanya memblokir iklan. Menonaktifkan daftar dewasa, perjudian, dan keamanan serta SafeSearch dan mode Terbatas YouTube.</string>
+    <string name="region_all">Semua</string>
+    <string name="region_cn">CN</string>
+    <string name="region_global">Global</string>
+    <string name="filter_recommended">Disarankan</string>
 </resources>

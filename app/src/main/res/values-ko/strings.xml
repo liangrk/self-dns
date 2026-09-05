@@ -529,4 +529,8 @@
     <string name="log_record_logs">로그 기록</string>
     <string name="settings_ads_only">광고만 차단</string>
     <string name="settings_ads_only_desc">광고만 차단합니다. 성인, 도박, 보안 목록과 세이프서치, YouTube 제한 모드를 비활성화합니다.</string>
+    <string name="region_all">전체</string>
+    <string name="region_cn">국내</string>
+    <string name="region_global">해외</string>
+    <string name="filter_recommended">추천</string>
 </resources>

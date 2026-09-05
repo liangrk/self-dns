@@ -545,4 +545,8 @@
     <string name="log_record_logs">تسجيل السجلات</string>
     <string name="settings_ads_only">الإعلانات فقط</string>
     <string name="settings_ads_only_desc">يحظر الإعلانات فقط. يعطّل قوائم البالغين والقمار والأمان بالإضافة إلى البحث الآمن ووضع YouTube المقيّد.</string>
+    <string name="region_all">الكل</string>
+    <string name="region_cn">الصين</string>
+    <string name="region_global">عالمي</string>
+    <string name="filter_recommended">موصى به</string>
 </resources>

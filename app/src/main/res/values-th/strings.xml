@@ -529,4 +529,8 @@
     <string name="log_record_logs">บันทึกประวัติ</string>
     <string name="settings_ads_only">โฆษณาเท่านั้น</string>
     <string name="settings_ads_only_desc">บล็อกเฉพาะโฆษณา ปิดรายการสำหรับผู้ใหญ่ การพนัน และความปลอดภัย รวมถึง SafeSearch และโหมดจำกัดของ YouTube</string>
+    <string name="region_all">ทั้งหมด</string>
+    <string name="region_cn">จีน</string>
+    <string name="region_global">โลก</string>
+    <string name="filter_recommended">แนะนำ</string>
 </resources>

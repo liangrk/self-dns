@@ -529,4 +529,8 @@
     <string name="log_record_logs">Gravar registros</string>
     <string name="settings_ads_only">Somente anúncios</string>
     <string name="settings_ads_only_desc">Bloqueia apenas anúncios. Desativa listas de conteúdo adulto, jogos de azar e segurança, além da Pesquisa segura e do modo restrito do YouTube.</string>
+    <string name="region_all">Tudo</string>
+    <string name="region_cn">China</string>
+    <string name="region_global">Global</string>
+    <string name="filter_recommended">Recomendado</string>
 </resources>

@@ -529,4 +529,8 @@
     <string name="log_record_logs">Enregistrer les journaux</string>
     <string name="settings_ads_only">Publicités uniquement</string>
     <string name="settings_ads_only_desc">Bloque uniquement les publicités. Désactive les listes adultes, jeux d\'argent et sécurité, ainsi que SafeSearch et le mode restreint YouTube.</string>
+    <string name="region_all">Tous</string>
+    <string name="region_cn">Chine</string>
+    <string name="region_global">International</string>
+    <string name="filter_recommended">Recommandé</string>
 </resources>

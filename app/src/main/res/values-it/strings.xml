@@ -529,4 +529,8 @@
     <string name="log_record_logs">Registra i log</string>
     <string name="settings_ads_only">Solo pubblicità</string>
     <string name="settings_ads_only_desc">Blocca solo la pubblicità. Disattiva gli elenchi per adulti, gioco d\'azzardo e sicurezza, oltre a SafeSearch e alla modalità con restrizioni di YouTube.</string>
+    <string name="region_all">Tutti</string>
+    <string name="region_cn">Cina</string>
+    <string name="region_global">Globali</string>
+    <string name="filter_recommended">Consigliato</string>
 </resources>

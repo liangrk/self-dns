@@ -529,4 +529,8 @@
     <string name="log_record_logs">Записывать журналы</string>
     <string name="settings_ads_only">Только реклама</string>
     <string name="settings_ads_only_desc">Блокирует только рекламу. Отключает списки для взрослых, азартных игр и безопасности, а также SafeSearch и ограниченный режим YouTube.</string>
+    <string name="region_all">Все</string>
+    <string name="region_cn">Китай</string>
+    <string name="region_global">Глобал</string>
+    <string name="filter_recommended">Рекомендуется</string>
 </resources>

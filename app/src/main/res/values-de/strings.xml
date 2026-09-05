@@ -529,4 +529,8 @@
     <string name="log_record_logs">Protokolle aufzeichnen</string>
     <string name="settings_ads_only">Nur Werbung</string>
     <string name="settings_ads_only_desc">Blockiert nur Werbung. Deaktiviert Erwachsenen-, Glücksspiel- und Sicherheitslisten sowie SafeSearch und den eingeschränkten YouTube-Modus.</string>
+    <string name="region_all">Alle</string>
+    <string name="region_cn">CN</string>
+    <string name="region_global">Global</string>
+    <string name="filter_recommended">Empfohlen</string>
 </resources>

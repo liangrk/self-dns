@@ -529,4 +529,8 @@
     <string name="log_record_logs">Rejestruj logi</string>
     <string name="settings_ads_only">Tylko reklamy</string>
     <string name="settings_ads_only_desc">Blokuje tylko reklamy. Wyłącza listy dla dorosłych, hazardu i bezpieczeństwa oraz SafeSearch i tryb ograniczony YouTube.</string>
+    <string name="region_all">Wszystko</string>
+    <string name="region_cn">Chiny</string>
+    <string name="region_global">Globalne</string>
+    <string name="filter_recommended">Zalecane</string>
 </resources>

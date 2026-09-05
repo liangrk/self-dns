@@ -529,4 +529,8 @@
     <string name="log_record_logs">Zaznamenávat protokoly</string>
     <string name="settings_ads_only">Jen reklamy</string>
     <string name="settings_ads_only_desc">Blokuje pouze reklamy. Vypne seznamy pro dospělé, hazard a bezpečnostní seznamy i Bezpečné hledání a omezený režim YouTube.</string>
+    <string name="region_all">Vše</string>
+    <string name="region_cn">Čína</string>
+    <string name="region_global">Globální</string>
+    <string name="filter_recommended">Doporučeno</string>
 </resources>

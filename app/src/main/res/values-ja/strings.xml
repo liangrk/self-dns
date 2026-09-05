@@ -529,4 +529,8 @@
     <string name="log_record_logs">ログを記録</string>
     <string name="settings_ads_only">広告のみブロック</string>
     <string name="settings_ads_only_desc">広告のみをブロックします。アダルト、ギャンブル、セキュリティのリストおよびセーフサーチ、YouTube 制限モードを無効にします。</string>
+    <string name="region_all">すべて</string>
+    <string name="region_cn">中国</string>
+    <string name="region_global">グローバル</string>
+    <string name="filter_recommended">おすすめ</string>
 </resources>

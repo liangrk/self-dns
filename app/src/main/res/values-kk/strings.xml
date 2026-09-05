@@ -529,4 +529,8 @@
     <string name="log_record_logs">Журналдарды жазу</string>
     <string name="settings_ads_only">Тек жарнама</string>
     <string name="settings_ads_only_desc">Тек жарнаманы бұғаттау. Ересектер, құмар ойындар және қауіпсіздік тізімдері, қауіпсіз іздеу және YouTube шектеулі режимі өшіріледі.</string>
+    <string name="region_all">Барлығы</string>
+    <string name="region_cn">Қытай</string>
+    <string name="region_global">Халықар</string>
+    <string name="filter_recommended">Ұсынылады</string>
 </resources>

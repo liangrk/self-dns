@@ -529,4 +529,8 @@
     <string name="log_record_logs">רשום יומנים</string>
     <string name="settings_ads_only">מודעות בלבד</string>
     <string name="settings_ads_only_desc">חוסם מודעות בלבד. משבית רשימות למבוגרים, הימורים ואבטחה וכן חיפוש בטוח ומצב מוגבל של YouTube.</string>
+    <string name="region_all">הכל</string>
+    <string name="region_cn">סין</string>
+    <string name="region_global">גלובלי</string>
+    <string name="filter_recommended">מומלץ</string>
 </resources>

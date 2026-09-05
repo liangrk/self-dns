@@ -550,4 +550,8 @@ Desteklenen formatlar:
     <string name="log_record_logs">Günlükleri Kaydet</string>
     <string name="settings_ads_only">Yalnızca reklamlar</string>
     <string name="settings_ads_only_desc">Yalnızca reklamları engeller. Yetişkin, kumar ve güvenlik listelerini ve SafeSearch ile YouTube kısıtlı modunu devre dışı bırakır.</string>
+    <string name="region_all">Tümü</string>
+    <string name="region_cn">Çin</string>
+    <string name="region_global">Küresel</string>
+    <string name="filter_recommended">Önerilen</string>
 </resources>

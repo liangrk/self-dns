@@ -529,4 +529,8 @@
     <string name="log_record_logs">Ghi nhật ký</string>
     <string name="settings_ads_only">Chỉ quảng cáo</string>
     <string name="settings_ads_only_desc">Chỉ chặn quảng cáo. Tắt danh sách người lớn, cờ bạc và bảo mật cũng như SafeSearch và chế độ hạn chế YouTube.</string>
+    <string name="region_all">Tất cả</string>
+    <string name="region_cn">Trung Quốc</string>
+    <string name="region_global">Quốc tế</string>
+    <string name="filter_recommended">Đề xuất</string>
 </resources>
