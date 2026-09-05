@@ -17,6 +17,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.io.FileOutputStream
 import java.util.concurrent.ConcurrentHashMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -49,6 +50,9 @@ class FilterListRepository(
 
         /** Re-compile the CN list from upstream at most once per day. */
         private const val CN_RULES_TTL_MS = 24 * 60 * 60 * 1000L
+
+        /** Domain count recorded when the bundled CN rules were compiled. */
+        const val BUNDLED_CN_RULES_COUNT = 108411
 
         private const val FILTER_LIST_JSON_URL =
             "https://raw.githubusercontent.com/pass-with-high-score/blockads-default-filter/refs/heads/main/output/filter_lists.json"
@@ -469,8 +473,17 @@ class FilterListRepository(
         }
         if (filter == null) return@withContext
 
+        // 1) Bootstrap from the APK-bundled compiled artifacts when local
+        //    files are missing (first launch / cleared data). Zero network:
+        //    works offline and behind slow GitHub links on CN networks.
+        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() || !cnCompiledFilesExist(filter)) {
+            if (installBundledCnRules(filter)) return@withContext
+        }
+
+        // 2) Daily refresh from the rules repo (bundled copy is refreshed
+        //    by the TTL path once the network allows).
         val stale = System.currentTimeMillis() - filter.lastUpdated > CN_RULES_TTL_MS
-        if (filter.bloomUrl.isEmpty() || filter.trieUrl.isEmpty() || stale) {
+        if (stale) {
             compileCnFilter(filter)
         }
 
@@ -513,6 +526,55 @@ class FilterListRepository(
         } catch (e: Exception) {
             Timber.e(e, "CN rules local compilation failed")
         }
+    }
+
+    /**
+     * Install the compiled CN rules bundled in APK assets (assets/cn_rules/).
+     * Zero-network bootstrap: first launch works even when GitHub is slow or
+     * unreachable from CN networks. Returns false when assets are unavailable.
+     */
+    private suspend fun installBundledCnRules(filter: FilterList): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val dir = File(context.filesDir, "remote_filters").apply { mkdirs() }
+                streamAsset("cn_rules/cn-ads.trie", File(dir, "${filter.id}.trie"))
+                streamAsset("cn_rules/cn-ads.bloom", File(dir, "${filter.id}.bloom"))
+                streamAsset(
+                    "cn_rules/cn-ads.allowlist.txt",
+                    File(dir, "cn_allowlist.txt")
+                )
+                filterListDao.update(
+                    filter.copy(
+                        url = CN_RULES_DIST_URL,
+                        bloomUrl = "local://${filter.id}.bloom",
+                        trieUrl = "local://${filter.id}.trie",
+                        ruleCount = BUNDLED_CN_RULES_COUNT,
+                        domainCount = BUNDLED_CN_RULES_COUNT,
+                        lastUpdated = System.currentTimeMillis()
+                    )
+                )
+                Timber.d("Installed bundled CN rules (%d domains)", BUNDLED_CN_RULES_COUNT)
+                true
+            } catch (e: Exception) {
+                Timber.w(e, "Bundled CN rules unavailable")
+                false
+            }
+        }
+
+    private fun streamAsset(name: String, dest: File) {
+        context.assets.open(name).use { input ->
+            FileOutputStream(dest).use { output -> input.copyTo(output) }
+        }
+    }
+
+    /** True when the compiled local CN rule files referenced by the DB still exist. */
+    private fun cnCompiledFilesExist(filter: FilterList): Boolean {
+        if (!filter.bloomUrl.startsWith("local://") || !filter.trieUrl.startsWith("local://")) {
+            return false
+        }
+        val dir = File(context.filesDir, "remote_filters")
+        return File(dir, "${filter.id}.bloom").exists() &&
+            File(dir, "${filter.id}.trie").exists()
     }
 
     private suspend fun compileScriptletRules(enabledLists: List<FilterList>) =
