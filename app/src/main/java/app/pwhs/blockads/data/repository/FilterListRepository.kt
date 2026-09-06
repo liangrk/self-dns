@@ -82,6 +82,7 @@ class FilterListRepository(
     }
 
     private val whitelistedDomains = ConcurrentHashMap.newKeySet<String>()
+    private val whitelistExceptions = ConcurrentHashMap.newKeySet<String>()
     private val customBlockDomains = ConcurrentHashMap.newKeySet<String>()
     private val customAllowDomains = ConcurrentHashMap.newKeySet<String>()
 
@@ -118,10 +119,21 @@ class FilterListRepository(
         return false
     }
 
+    /**
+     * Whitelist verdict honoring "!" force-block exceptions from the CN
+     * allowlist: an exception beats an umbrella entry for the same domain.
+     */
+    private fun isWhitelisted(domain: String): Boolean {
+        if (whitelistExceptions.isNotEmpty() &&
+            checkDomainAndParents(domain) { whitelistExceptions.contains(it) }
+        ) return false
+        return checkDomainAndParents(domain) { whitelistedDomains.contains(it) }
+    }
+
     fun isBlocked(domain: String): Boolean {
         if (checkDomainAndParents(domain) { customAllowDomains.contains(it) }) return false
         if (checkDomainAndParents(domain) { customBlockDomains.contains(it) }) return true
-        if (checkDomainAndParents(domain) { whitelistedDomains.contains(it) }) return false
+        if (isWhitelisted(domain)) return false
         return false
     }
 
@@ -130,14 +142,14 @@ class FilterListRepository(
         // Same priority order as [isBlocked] / [getBlockReason]: a custom
         // block rule outranks the whitelist, it must not be shadowed here.
         if (checkDomainAndParents(domain) { customBlockDomains.contains(it) }) return 1L
-        if (checkDomainAndParents(domain) { whitelistedDomains.contains(it) }) return 0L
+        if (isWhitelisted(domain)) return 0L
         return -1L
     }
 
     fun getBlockReason(domain: String): String {
         if (checkDomainAndParents(domain) { customAllowDomains.contains(it) }) return ""
         if (checkDomainAndParents(domain) { customBlockDomains.contains(it) }) return BLOCK_REASON_CUSTOM_RULE
-        if (checkDomainAndParents(domain) { whitelistedDomains.contains(it) }) return ""
+        if (isWhitelisted(domain)) return ""
         return ""
     }
 
@@ -161,11 +173,17 @@ class FilterListRepository(
         // an upstream merge includes them.
         val cnAllowFile = File(context.filesDir, "remote_filters/cn_allowlist.txt")
         if (cnAllowFile.exists() && cnAllowFile.length() > 0) {
-            whitelistedDomains.addAll(
-                cnAllowFile.readLines()
-                    .map { it.trim().lowercase() }
-                    .filter { it.isNotEmpty() && !it.startsWith("#") }
-            )
+            for (raw in cnAllowFile.readLines()) {
+                val line = raw.trim().lowercase()
+                if (line.isEmpty() || line.startsWith("#")) continue
+                if (line.startsWith("!")) {
+                    // Force-block exception: hand rules under an allowlist
+                    // umbrella must win over the umbrella at runtime.
+                    whitelistExceptions.add(line.substring(1))
+                } else {
+                    whitelistedDomains.add(line)
+                }
+            }
         }
         Timber.d("Whitelist total (incl. CN allowlist): %d", whitelistedDomains.size)
     }
