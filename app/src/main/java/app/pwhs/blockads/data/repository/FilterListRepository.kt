@@ -1,6 +1,8 @@
 package app.pwhs.blockads.data.repository
 
 import android.content.Context
+import androidx.annotation.StringRes
+import app.pwhs.blockads.R
 import app.pwhs.blockads.data.dao.CustomDnsRuleDao
 import app.pwhs.blockads.data.dao.FilterListDao
 import app.pwhs.blockads.data.datastore.AppPreferences
@@ -514,6 +516,55 @@ class FilterListRepository(
         appPrefs.setCnRulesVersion(remote)
     }
 
+    /**
+     * Explicit refresh of the CN rules from the filters screen: checks the
+     * remote version, and when it is newer downloads the allowlist and
+     * recompiles the trie (ignoring the daily TTL — the button semantics
+     * is "force"). Returns a tri-state outcome for UI feedback.
+     */
+    suspend fun forceRefreshCnRules(): CnRulesUpdate = withContext(Dispatchers.IO) {
+        try {
+            bootstrapBundledCnRulesIfNeeded()
+            val filter = filterListDao.getByOriginalUrl(CN_RULES_DIST_URL)
+                ?: return@withContext CnRulesUpdate.Failed(
+                    R.string.filter_cn_error_compile, "CN filter row missing"
+                )
+            val current = maxOf(appPrefs.cnRulesVersion.first(), readBundledCnRulesVersion())
+            val remote = fetchRemoteCnRulesVersion()
+            if (remote <= 0) {
+                return@withContext CnRulesUpdate.Failed(
+                    R.string.filter_cn_error_version,
+                    "remote version unavailable"
+                )
+            }
+            if (remote <= current) {
+                return@withContext CnRulesUpdate.UpToDate
+            }
+            // Newer remote: refresh the allowlist first, then force a
+            // recompile (TTL ignored — explicit user action).
+            val allowOk = runCatching {
+                downloadManager.downloadRawTo(
+                    CN_RULES_ALLOWLIST_URL,
+                    File(context.filesDir, "remote_filters/cn_allowlist.txt")
+                )
+            }.getOrElse { false }
+            if (!allowOk) {
+                return@withContext CnRulesUpdate.Failed(R.string.filter_cn_error_allowlist)
+            }
+            val count = compileCnFilter(filter)
+            if (count <= 0) {
+                return@withContext CnRulesUpdate.Failed(
+                    R.string.filter_cn_error_compile, "download or compile returned no rules"
+                )
+            }
+            appPrefs.setCnRulesVersion(remote)
+            CnRulesUpdate.Updated(remote, count)
+        } catch (e: Exception) {
+            Timber.e(e, "forceRefreshCnRules failed")
+            CnRulesUpdate.Failed(R.string.filter_cn_error_version, e.message)
+        }
+    }
+
     /** Fetches dist/cn-ads.version from the rules repo; 0 when unavailable. */
     private suspend fun fetchRemoteCnRulesVersion(): Int = try {
         client.get(CN_RULES_VERSION_URL).bodyAsText().trim().toIntOrNull() ?: 0
@@ -571,7 +622,8 @@ class FilterListRepository(
         false
     }
 
-    private suspend fun compileCnFilter(filter: FilterList) = withContext(Dispatchers.IO) {
+    private suspend fun compileCnFilter(filter: FilterList): Int = withContext(Dispatchers.IO) {
+        // Returns compiled domain count, or -1 on failure.
         val rawFile = File(context.filesDir, "remote_filters/${filter.id}.raw")
         val downloaded = try {
             downloadManager.downloadRawTo(CN_RULES_DIST_URL, rawFile)
@@ -579,7 +631,7 @@ class FilterListRepository(
             Timber.w(e, "CN rules download failed")
             false
         }
-        if (!downloaded) return@withContext
+        if (!downloaded) return@withContext -1
 
         try {
             val triePath = File(context.filesDir, "remote_filters/${filter.id}.trie")
@@ -598,8 +650,10 @@ class FilterListRepository(
                 )
             )
             Timber.d("CN rules compiled locally: %d domains", count)
+            count
         } catch (e: Exception) {
             Timber.e(e, "CN rules local compilation failed")
+            -1
         }
     }
 
@@ -736,6 +790,11 @@ class FilterListRepository(
             var totalCount = 0
 
             for (filter in enabledBuiltIn) {
+                // CN rules are version-gated and refreshed by
+                // [forceRefreshCnRules]; the generic path here is a no-op
+                // for their local:// artifacts and would only stamp the
+                // "last updated" time, which misleads the user.
+                if (filter.originalUrl == CN_RULES_DIST_URL) continue
                 // Force download the binary files from the remote server
                 val result = downloadManager.downloadFilterList(filter, forceUpdate = true)
                 if (result.isSuccess) {
@@ -833,4 +892,21 @@ class FilterListRepository(
             }
         }
 
+}
+
+/**
+ * Outcome of an explicit CN rules refresh triggered from the filters UI.
+ */
+sealed interface CnRulesUpdate {
+    /** Remote version is not newer than what the device already has. */
+    data object UpToDate : CnRulesUpdate
+
+    /** Fresh rules downloaded, compiled, and recorded in DataStore. */
+    data class Updated(val version: Int, val domains: Int) : CnRulesUpdate
+
+    /** Failure with a user-facing reason (+ optional technical detail). */
+    data class Failed(
+        @StringRes val reasonRes: Int,
+        val detail: String? = null,
+    ) : CnRulesUpdate
 }

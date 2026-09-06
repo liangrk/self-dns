@@ -26,6 +26,12 @@
     <string name="nav_filter">过滤器</string>
     <string name="nav_settings">设置</string>
     <string name="filter_updated">过滤列表已更新：%d 个域名</string>
+    <string name="filter_cn_up_to_date">已经是最新，没有更新</string>
+    <string name="filter_cn_updated">更新成功（v%1$d，%2$d 条）</string>
+    <string name="filter_engine_loaded">加载成功，规则已生效</string>
+    <string name="filter_cn_error_version">检查远端版本失败（网络不可用）</string>
+    <string name="filter_cn_error_allowlist">白名单下载失败</string>
+    <string name="filter_cn_error_compile">规则下载或本地编译失败</string>
     <string name="filter_update_failed">过滤列表更新失败</string>
     <string name="filter_detail_enabled">已启用</string>
     <string name="filter_detail_rules">规则</string>

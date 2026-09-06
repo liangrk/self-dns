@@ -28,6 +28,12 @@
     <string name="nav_filter">Filter</string>
     <string name="nav_settings">Settings</string>
     <string name="filter_updated">Filter list updated: %d domains</string>
+    <string name="filter_cn_up_to_date">Already up to date — no update</string>
+    <string name="filter_cn_updated">Update succeeded (v%1$d, %2$d domains)</string>
+    <string name="filter_engine_loaded">Loaded — rules are now active</string>
+    <string name="filter_cn_error_version">Failed to check the remote version (network unavailable)</string>
+    <string name="filter_cn_error_allowlist">Failed to download the allowlist</string>
+    <string name="filter_cn_error_compile">Failed to download or compile the rule file</string>
     <string name="filter_update_failed">Failed to update filter list</string>
     <string name="filter_detail_enabled">Enabled</string>
     <string name="filter_detail_rules">Rules</string>

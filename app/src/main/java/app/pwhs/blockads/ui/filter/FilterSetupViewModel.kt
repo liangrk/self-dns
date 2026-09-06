@@ -8,6 +8,7 @@ import app.pwhs.blockads.data.entities.FilterList
 import app.pwhs.blockads.data.dao.FilterListDao
 import app.pwhs.blockads.data.repository.CustomFilterManager
 import app.pwhs.blockads.data.repository.FilterListRepository
+import app.pwhs.blockads.data.repository.CnRulesUpdate
 import app.pwhs.blockads.service.AdBlockVpnService
 import app.pwhs.blockads.service.ServiceController
 import app.pwhs.blockads.ui.event.UiEvent
@@ -148,47 +149,64 @@ class FilterSetupViewModel(
             var totalCount = 0
             var hasLocalFilters = false
 
-            // 1. Update remote built-in filters
+            // 1. CN rules: real version check with explicit
+            //    up-to-date / updated / failed feedback.
+            val cnResult = filterRepo.forceRefreshCnRules()
+
+            // 2. Update the remaining remote built-in filters
             val result = filterRepo.forceUpdateAllEnabledFilters()
             result.onSuccess { count -> totalCount += count }
 
-            // 2. Update all enabled custom filters
+            // 3. Update all enabled custom filters
             val customFilters = filterListDao.getAllNonBuiltIn()
             for (filter in customFilters) {
                 if (!filter.isEnabled) continue
-
                 val isLocal = filter.trieUrl.startsWith("local://") &&
                         filter.bloomUrl.startsWith("local://")
-
                 if (isLocal) {
-                    // Enqueue WorkManager job for local filters
                     customFilterManager.enqueueRecompileLocally(filter)
                     hasLocalFilters = true
                 } else {
-                    val customResult = customFilterManager.updateCustomFilter(filter)
-                    customResult.onSuccess { updatedFilter ->
+                    customFilterManager.updateCustomFilter(filter).onSuccess { updatedFilter ->
                         totalCount += updatedFilter.ruleCount
                     }
                 }
             }
 
-            // Always reload engine in case any custom filters updated their binaries
+            // Reload the engine so refreshed rules take effect.
             filterRepo.loadAllEnabledFilters()
 
             _isUpdatingFilter.value = false
 
-            if (hasLocalFilters) {
-                _events.toast(R.string.filter_compile_enqueued)
-            }
-            if (result.isSuccess || totalCount > 0) {
-                _events.toast(
-                    R.string.filter_updated,
-                    listOf(totalCount)
-                )
-            } else if (!hasLocalFilters) {
-                result.onFailure {
-                    _events.toast(R.string.filter_update_failed)
+            // CN rules feedback: up-to-date / updated+loaded / failure reason.
+            when (cnResult) {
+                is CnRulesUpdate.UpToDate -> {
+                    _events.toast(R.string.filter_cn_up_to_date)
                 }
+                is CnRulesUpdate.Updated -> {
+                    _events.toast(
+                        R.string.filter_cn_updated,
+                        listOf(cnResult.version, cnResult.domains)
+                    )
+                    // The engine reload above has activated the new rules.
+                    _events.toast(R.string.filter_engine_loaded)
+                }
+                is CnRulesUpdate.Failed -> {
+                    val reason = application.getString(cnResult.reasonRes)
+                    val detail = cnResult.detail
+                    _events.tryEmit(
+                        UiEvent.ToastText(
+                            if (detail != null) "$reason ($detail)" else reason
+                        )
+                    )
+                }
+            }
+
+            // Other filters: only report when something actually changed.
+            if (totalCount > 0) {
+                _events.toast(R.string.filter_updated, listOf(totalCount))
+            } else if (!hasLocalFilters && !result.isSuccess) {
+                _events.toast(R.string.filter_update_failed)
             }
         }
     }
