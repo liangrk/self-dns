@@ -427,6 +427,10 @@
     <string name="https_filtering_step3_title">步骤 3：验证安装</string>
     <string name="https_filtering_step3_desc">检查证书是否正确安装</string>
     <string name="https_filtering_verify_cert">验证证书</string>
+    <string name="https_filtering_install_one_tap">一键安装证书</string>
+    <string name="https_filtering_uninstall_one_tap">一键卸载证书</string>
+    <string name="https_filtering_manual_export_desc">更喜欢手动安装?可导出 CA 证书文件后在系统设置中自行安装。</string>
+    <string name="https_filtering_cert_not_ready">证书未就绪:请先开启 HTTPS 过滤以生成 CA 证书。</string>
     <string name="https_filtering_cert_installed">证书已安装 ✓</string>
     <string name="https_filtering_cert_not_installed">证书未安装</string>
     <string name="https_filtering_cert_checking">检查中…</string>

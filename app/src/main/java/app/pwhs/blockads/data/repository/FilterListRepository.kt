@@ -10,6 +10,7 @@ import app.pwhs.blockads.data.remote.FilterDownloadManager
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsChannel
+import io.ktor.client.statement.bodyAsText
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -48,11 +49,14 @@ class FilterListRepository(
         const val CN_RULES_ALLOWLIST_URL =
             "https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist/cn-ads.allowlist.txt"
 
+        const val CN_RULES_VERSION_URL =
+            "https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist/cn-ads.version"
+
         /** Re-compile the CN list from upstream at most once per day. */
         private const val CN_RULES_TTL_MS = 24 * 60 * 60 * 1000L
 
         /** Domain count recorded when the bundled CN rules were compiled. */
-        const val BUNDLED_CN_RULES_COUNT = 108430
+        const val BUNDLED_CN_RULES_COUNT = 108781
 
         private const val FILTER_LIST_JSON_URL =
             "https://raw.githubusercontent.com/pass-with-high-score/blockads-default-filter/refs/heads/main/output/filter_lists.json"
@@ -461,20 +465,51 @@ class FilterListRepository(
         val filter = filterListDao.getByOriginalUrl(CN_RULES_DIST_URL)
             ?: return@withContext
 
-        // 2) Daily refresh from the rules repo (bundled copy is refreshed
-        //    by the TTL path once the network allows).
-        val stale = System.currentTimeMillis() - filter.lastUpdated > CN_RULES_TTL_MS
-        if (stale) {
-            compileCnFilter(filter)
+        // 2) Version-gated refresh from the rules repo. The remote version
+        //    marker must be strictly greater than what the device already
+        //    has (bundled in APK or previously downloaded), otherwise
+        //    nothing is downloaded. This prevents an outdated remote from
+        //    rolling the device allowlist back over a newer bundled copy
+        //    (seen 2026-09-06: GitHub still served the baidu.com umbrella
+        //    after the APK shipped the de-umbrella'd list).
+        val current = maxOf(appPrefs.cnRulesVersion.first(), readBundledCnRulesVersion())
+        val remote = fetchRemoteCnRulesVersion()
+        if (remote <= current) {
+            if (remote > 0) {
+                Timber.d("CN rules v%d not newer than device v%d; skipping refresh", remote, current)
+            }
+            return@withContext
         }
 
-        // Keep the protection list current; loaded by loadWhitelist().
+        // Newer remote version: refresh the allowlist (protection list)
+        // first, then recompile the trie only when the daily TTL elapsed.
         runCatching {
             downloadManager.downloadRawTo(
                 CN_RULES_ALLOWLIST_URL,
                 File(context.filesDir, "remote_filters/cn_allowlist.txt")
             )
         }
+        val stale = System.currentTimeMillis() - filter.lastUpdated > CN_RULES_TTL_MS
+        if (stale) {
+            compileCnFilter(filter)
+        }
+        appPrefs.setCnRulesVersion(remote)
+    }
+
+    /** Fetches dist/cn-ads.version from the rules repo; 0 when unavailable. */
+    private suspend fun fetchRemoteCnRulesVersion(): Int = try {
+        client.get(CN_RULES_VERSION_URL).bodyAsText().trim().toIntOrNull() ?: 0
+    } catch (e: Exception) {
+        0
+    }
+
+    /** Reads cn-ads.version bundled in APK assets; 0 when unavailable. */
+    private fun readBundledCnRulesVersion(): Int = try {
+        context.assets.open("cn_rules/cn-ads.version").bufferedReader().use { reader ->
+            reader.readText().trim().toIntOrNull() ?: 0
+        }
+    } catch (e: Exception) {
+        0
     }
 
     /**
@@ -576,6 +611,11 @@ class FilterListRepository(
                     )
                 )
                 Timber.d("Installed bundled CN rules (%d domains)", BUNDLED_CN_RULES_COUNT)
+                // Record the bundled version so a stale remote can never
+                // roll the device back below what this APK shipped with.
+                appPrefs.setCnRulesVersion(
+                    maxOf(appPrefs.cnRulesVersion.first(), readBundledCnRulesVersion())
+                )
                 true
             } catch (e: Exception) {
                 Timber.w(e, "Bundled CN rules unavailable")

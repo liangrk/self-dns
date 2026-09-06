@@ -508,6 +508,10 @@
     <string name="https_filtering_step3_title">Step 3: Verify Installation</string>
     <string name="https_filtering_step3_desc">Check if the certificate is installed correctly</string>
     <string name="https_filtering_verify_cert">Verify Certificate</string>
+    <string name="https_filtering_install_one_tap">Install certificate (one tap)</string>
+    <string name="https_filtering_uninstall_one_tap">Uninstall certificate (one tap)</string>
+    <string name="https_filtering_manual_export_desc">Prefer manual installation? Export the CA file and install it in Settings yourself.</string>
+    <string name="https_filtering_cert_not_ready">Certificate not ready. Enable HTTPS filtering first so the CA can be generated.</string>
     <string name="https_filtering_cert_installed">Certificate installed ✓</string>
     <string name="https_filtering_cert_not_installed">Certificate not installed</string>
     <string name="https_filtering_cert_checking">Checking…</string>

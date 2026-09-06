@@ -1,5 +1,6 @@
 package app.pwhs.blockads.ui.httpsfiltering
 
+import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -40,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalResources
@@ -52,6 +54,7 @@ import app.pwhs.blockads.ui.httpsfiltering.component.BrowserRow
 import app.pwhs.blockads.ui.httpsfiltering.component.ExplanationCard
 import app.pwhs.blockads.ui.httpsfiltering.component.MasterToggleCard
 import app.pwhs.blockads.ui.httpsfiltering.component.SetupGuideCard
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -77,12 +80,28 @@ fun HttpsFilteringScreen(
     val proxyStartedMsg = stringResource(R.string.https_filtering_started)
     val proxyStoppedMsg = stringResource(R.string.https_filtering_stopped)
 
-    // Re-verify when the user returns from Android's Security Settings.
+    // Re-verify when the user returns from the system cert dialog.
     // They likely just installed (or removed) the certificate.
-    val settingsLauncher = rememberLauncherForActivityResult(
+    val certActionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) {
         viewModel.verifyCert()
+    }
+
+    // One-tap install/uninstall; null intent → cert not ready yet, prompt
+    // to start HTTPS filtering first so the CA gets generated.
+    val noCertYetMsg = stringResource(R.string.https_filtering_cert_not_ready)
+    val scope = rememberCoroutineScope()
+    fun launchCertAction(intent: Intent?) {
+        if (intent == null) {
+            scope.launch { snackbarHostState.showSnackbar(noCertYetMsg) }
+        } else {
+            try {
+                certActionLauncher.launch(intent)
+            } catch (e: Exception) {
+                scope.launch { snackbarHostState.showSnackbar(e.message ?: noCertYetMsg) }
+            }
+        }
     }
 
     // Auto-verify on first composition when filtering is on, so users
@@ -105,7 +124,7 @@ fun HttpsFilteringScreen(
                     // On old Android, try the legacy install intent
                     try {
                         val intent = viewModel.createSecuritySettingsIntent()
-                        settingsLauncher.launch(intent)
+                        certActionLauncher.launch(intent)
                     } catch (_: Exception) {
                         snackbarHostState.showSnackbar(certSavedLegacyMsg)
                     }
@@ -192,14 +211,13 @@ fun HttpsFilteringScreen(
                         SetupGuideCard(
                             certExported = certExported,
                             certStatus = certStatus,
-                            onExport = { viewModel.exportCaCert() },
-                            onOpenSettings = {
-                                try {
-                                    val intent = viewModel.createSecuritySettingsIntent()
-                                    settingsLauncher.launch(intent)
-                                } catch (_: Exception) {
-                                }
+                            onInstall = {
+                                launchCertAction(viewModel.createInstallCertIntent())
                             },
+                            onUninstall = {
+                                launchCertAction(viewModel.createUninstallCertIntent())
+                            },
+                            onExport = { viewModel.exportCaCert() },
                             onVerifyCert = { viewModel.verifyCert() }
                         )
                     }

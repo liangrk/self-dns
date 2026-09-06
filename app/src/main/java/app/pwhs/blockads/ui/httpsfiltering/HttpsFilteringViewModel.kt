@@ -312,6 +312,71 @@ class HttpsFilteringViewModel(
         }
     }
 
+    /**
+     * One-tap install: hand the CA certificate to the system installer via
+     * the KeyChain install intent. The user confirms once in the system
+     * dialog — no trip to Settings and no file picking required.
+     * Returns null when no CA cert exists yet (HTTPS filtering never started).
+     */
+    fun createInstallCertIntent(): Intent? {
+        val pem = _caCertPem.value
+        if (pem.isNullOrEmpty()) {
+            // Generate on demand so the button works before the first start.
+            val certDir = getApplication<Application>().filesDir.absolutePath
+            val generated = try {
+                engine.getMitmCACert(certDir)
+            } catch (e: Exception) {
+                Timber.w(e, "Cert install: failed to obtain CA cert")
+                null
+            } ?: return null
+            _caCertPem.value = generated
+            return buildInstallCertIntent(generated)
+        }
+        return buildInstallCertIntent(pem)
+    }
+
+    /**
+     * One-tap uninstall: hand our CA certificate to the system uninstaller.
+     * Returns null when the CA cert cannot be loaded.
+     */
+    fun createUninstallCertIntent(): Intent? {
+        val pem = _caCertPem.value ?: return null
+        return try {
+            val cert = parseX509(pem)
+            Intent("android.credentials.UNINSTALL_CERTIFICATE").apply {
+                putExtra(
+                    android.security.KeyChain.EXTRA_CERTIFICATE,
+                    android.util.Base64.encodeToString(cert.encoded, android.util.Base64.NO_WRAP)
+                )
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Cert uninstall: failed to build intent")
+            null
+        }
+    }
+
+    private fun buildInstallCertIntent(pem: String): Intent? {
+        return try {
+            val cert = parseX509(pem)
+            Intent("android.credentials.INSTALL_CERTIFICATE").apply {
+                putExtra(
+                    android.security.KeyChain.EXTRA_CERTIFICATE,
+                    android.util.Base64.encodeToString(cert.encoded, android.util.Base64.NO_WRAP)
+                )
+                // System rejects names outside [a-zA-Z0-9_-]; use underscores.
+                putExtra(android.security.KeyChain.EXTRA_NAME, "BlockAds_Root_CA")
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Cert install: failed to build intent")
+            null
+        }
+    }
+
+    private fun parseX509(pem: String): java.security.cert.X509Certificate {
+        val certFactory = java.security.cert.CertificateFactory.getInstance("X.509")
+        return certFactory.generateCertificate(pem.byteInputStream()) as java.security.cert.X509Certificate
+    }
+
     // ── Internal ─────────────────────────────────────────────────────────
 
     private fun loadState() {

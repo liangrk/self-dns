@@ -73,6 +73,7 @@ class AppPreferences(private val context: Context) {
         private val KEY_PAUSED_BY_TRUSTED = booleanPreferencesKey("paused_by_trusted")
         private val KEY_PAUSED_TRUSTED_SSID = stringPreferencesKey("paused_trusted_ssid")
         private val KEY_RECORD_DNS_LOGS = booleanPreferencesKey("record_dns_logs")
+        private val KEY_CN_RULES_VERSION = intPreferencesKey("cn_rules_version")
 
         const val ROUTING_MODE_DIRECT = "direct"
         const val ROUTING_MODE_WIREGUARD = "wireguard"
@@ -167,7 +168,12 @@ class AppPreferences(private val context: Context) {
         prefs[KEY_NETWORK_SWITCH_DELAY_SEC] ?: 30
     }
 
-    val filterUrl: Flow<String> = context.dataStore.data.map { prefs ->
+        /** Version of the CN rules currently installed on device (0 = unknown). */
+    val cnRulesVersion: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[KEY_CN_RULES_VERSION] ?: 0
+    }
+
+val filterUrl: Flow<String> = context.dataStore.data.map { prefs ->
         prefs[KEY_FILTER_URL] ?: DEFAULT_FILTER_URL
     }
 
@@ -585,6 +591,12 @@ class AppPreferences(private val context: Context) {
     suspend fun setNetworkSwitchDelaySec(seconds: Int) {
         context.dataStore.edit { prefs ->
             prefs[KEY_NETWORK_SWITCH_DELAY_SEC] = seconds.coerceIn(5, 120)
+        }
+    }
+
+    suspend fun setCnRulesVersion(version: Int) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_CN_RULES_VERSION] = version
         }
     }
 
