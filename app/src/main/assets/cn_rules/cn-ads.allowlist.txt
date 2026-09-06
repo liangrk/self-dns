@@ -13,7 +13,6 @@ dbankcloud.cn
 dbankcloud.com
 dbankcloud.ru
 detail.taobao.com
-dianping.com
 douyin.com
 fengkongcloud.com
 g.baidu.com
@@ -27,7 +26,6 @@ itsdata.map.baidu.com
 m.baidu.com
 m1.baidu.com
 mapi.m.jd.com
-meituan.com
 msite.baidu.com
 myhuaweicloud.com
 netease.com
