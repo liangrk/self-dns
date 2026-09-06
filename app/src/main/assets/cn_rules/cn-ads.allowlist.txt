@@ -46,7 +46,6 @@ zjcdn.com
 !acjs.aliyun.com
 !ad.weixin.qq.com
 !ali-ad.a.yximgs.com
-!as.weixin.qq.com
 !ecma.bdimg.com
 !ecmb.bdimg.com
 !ecmc.bdimg.com

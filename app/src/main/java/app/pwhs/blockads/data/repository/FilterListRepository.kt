@@ -58,7 +58,7 @@ class FilterListRepository(
         private const val CN_RULES_TTL_MS = 24 * 60 * 60 * 1000L
 
         /** Domain count recorded when the bundled CN rules were compiled. */
-        const val BUNDLED_CN_RULES_COUNT = 109111
+        const val BUNDLED_CN_RULES_COUNT = 109110
 
         private const val FILTER_LIST_JSON_URL =
             "https://raw.githubusercontent.com/pass-with-high-score/blockads-default-filter/refs/heads/main/output/filter_lists.json"
