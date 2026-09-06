@@ -5,6 +5,7 @@ amap-aos-info-nogw.amap.com
 anquan.baidu.com
 as.baidu.com
 autonavi.com
+badjs.weixinbridge.com
 bdimg.com
 bdstatic.com
 chat1.jd.com
@@ -13,6 +14,7 @@ dbankcloud.cn
 dbankcloud.com
 dbankcloud.ru
 detail.taobao.com
+dns.weixin.qq.com.cn
 douyin.com
 fengkongcloud.com
 g.baidu.com
@@ -22,6 +24,7 @@ hicloud.com
 hihonorcloud.com
 honor.com
 httpdns.bcelive.com
+ilce.alicdn.com
 itsdata.map.baidu.com
 m.baidu.com
 m1.baidu.com
@@ -36,6 +39,7 @@ teg.tencent-cloud.net
 tmall.com
 weixin.com
 weixin.qq.com
+wxs.qq.com
 yximgs.com
 zhimg.com
 zjcdn.com
