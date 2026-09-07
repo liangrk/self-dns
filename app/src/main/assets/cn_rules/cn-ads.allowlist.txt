@@ -2,7 +2,9 @@
 alipay.com
 aliyun.com
 amap-aos-info-nogw.amap.com
+analytics.map.qq.com
 anquan.baidu.com
+appcfg.v.qq.com
 as.baidu.com
 autonavi.com
 badjs.weixinbridge.com
