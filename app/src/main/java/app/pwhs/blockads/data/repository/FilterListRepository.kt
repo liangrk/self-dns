@@ -63,6 +63,7 @@ class FilterListRepository(
          * succeeded) to avoid mixing sources mid-update.
          */
         val CN_RULES_MIRRORS = listOf(
+            "https://registry.npmmirror.com/blockads-cn-rules/latest/files/dist",
             "https://cdn.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://fastly.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://gcore.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
