@@ -54,6 +54,21 @@ class FilterListRepository(
         const val CN_RULES_VERSION_URL =
             "https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist/cn-ads.version"
 
+        /**
+         * CN rules download mirrors, tried in order. The jsDelivr CDN
+         * endpoints are reachable from CN networks where
+         * raw.githubusercontent.com is throttled or blocked; the origin
+         * raw URL stays last as fallback. All three dist files are always
+         * fetched from the SAME mirror (the one whose version probe
+         * succeeded) to avoid mixing sources mid-update.
+         */
+        val CN_RULES_MIRRORS = listOf(
+            "https://cdn.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
+            "https://fastly.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
+            "https://gcore.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
+            "https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist"
+        )
+
         /** Re-compile the CN list from upstream at most once per day. */
         private const val CN_RULES_TTL_MS = 24 * 60 * 60 * 1000L
 
@@ -63,6 +78,10 @@ class FilterListRepository(
         private const val FILTER_LIST_JSON_URL =
             "https://raw.githubusercontent.com/pass-with-high-score/blockads-default-filter/refs/heads/main/output/filter_lists.json"
     }
+
+    // Mirror whose version probe succeeded last (see CN_RULES_MIRRORS).
+    @Volatile
+    private var cnMirrorBase: String? = null
 
     // Paths to pre-compiled binary files for Go Native Engine (CSV strings)
     @Volatile
@@ -505,7 +524,7 @@ class FilterListRepository(
         // first, then recompile the trie only when the daily TTL elapsed.
         runCatching {
             downloadManager.downloadRawTo(
-                CN_RULES_ALLOWLIST_URL,
+                cnMirrorBase?.let { "$it/cn-ads.allowlist.txt" } ?: CN_RULES_ALLOWLIST_URL,
                 File(context.filesDir, "remote_filters/cn_allowlist.txt")
             )
         }
@@ -542,9 +561,10 @@ class FilterListRepository(
             }
             // Newer remote: refresh the allowlist first, then force a
             // recompile (TTL ignored — explicit user action).
+            val allowBase = cnMirrorBase ?: CN_RULES_MIRRORS.last()
             val allowOk = runCatching {
                 downloadManager.downloadRawTo(
-                    CN_RULES_ALLOWLIST_URL,
+                    "$allowBase/cn-ads.allowlist.txt",
                     File(context.filesDir, "remote_filters/cn_allowlist.txt")
                 )
             }.getOrElse { false }
@@ -565,11 +585,25 @@ class FilterListRepository(
         }
     }
 
-    /** Fetches dist/cn-ads.version from the rules repo; 0 when unavailable. */
-    private suspend fun fetchRemoteCnRulesVersion(): Int = try {
-        client.get(CN_RULES_VERSION_URL).bodyAsText().trim().toIntOrNull() ?: 0
-    } catch (e: Exception) {
-        0
+    /**
+     * Fetches dist/cn-ads.version, probing mirrors in order; 0 when all
+     * fail. Remembers the winning mirror so the allowlist and rule list
+     * downloads below hit the same source.
+     */
+    private suspend fun fetchRemoteCnRulesVersion(): Int {
+        for (base in CN_RULES_MIRRORS) {
+            try {
+                val v = client.get("$base/cn-ads.version").bodyAsText().trim().toIntOrNull() ?: 0
+                if (v > 0) {
+                    cnMirrorBase = base
+                    Timber.d("CN rules mirror selected: %s (v%d)", base, v)
+                    return v
+                }
+            } catch (e: Exception) {
+                Timber.d("CN mirror probe failed: %s", base)
+            }
+        }
+        return 0
     }
 
     /** Reads cn-ads.version bundled in APK assets; 0 when unavailable. */
@@ -626,7 +660,8 @@ class FilterListRepository(
         // Returns compiled domain count, or -1 on failure.
         val rawFile = File(context.filesDir, "remote_filters/${filter.id}.raw")
         val downloaded = try {
-            downloadManager.downloadRawTo(CN_RULES_DIST_URL, rawFile)
+            downloadManager.downloadRawTo(
+                cnMirrorBase?.let { "$it/cn-ads.txt" } ?: CN_RULES_DIST_URL, rawFile)
         } catch (e: Exception) {
             Timber.w(e, "CN rules download failed")
             false
