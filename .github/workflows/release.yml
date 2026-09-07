@@ -1,0 +1,55 @@
+name: Release APK
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Signed release build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Restore signing config from Secrets
+        env:
+          KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
+          STORE_PASS: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > keystore/blockads-release.jks
+          cat > key.properties <<EOF
+          storeFile=keystore/blockads-release.jks
+          storePassword=$STORE_PASS
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASS
+          EOF
+
+      - name: Build release APKs
+        run: ./gradlew assembleRelease --console=plain --no-daemon
+
+      - name: Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apks
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+
+      - name: Attach APKs to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/*.apk
