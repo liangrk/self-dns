@@ -30,6 +30,7 @@ jobs:
           KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           KEY_PASS: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
+          mkdir -p keystore
           echo "$KEYSTORE_B64" | base64 -d > keystore/blockads-release.jks
           cat > key.properties <<EOF
           storeFile=keystore/blockads-release.jks
