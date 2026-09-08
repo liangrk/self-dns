@@ -61,6 +61,7 @@ jobs:
         run: ./gradlew assembleRelease --console=plain --no-daemon
 
       - name: Upload APK artifacts
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: release-apks
