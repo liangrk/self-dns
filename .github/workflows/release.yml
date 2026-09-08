@@ -36,7 +36,7 @@ jobs:
           curl -fsSL --retry 3 "$MIRROR/cn-ads.allowlist.txt" -o "$DIR/cn-ads.allowlist.txt"
           curl -fsSL --retry 3 "$MIRROR/cn-ads.version" -o "$DIR/cn-ads.version"
           cd tunnel
-          go run ./cmd_compile "$DIR/cn-ads.raw" ../$DIR/cn-ads.trie ../$DIR/cn-ads.bloom
+          go run ./cmd_compile "../$DIR/cn-ads.raw" "../$DIR/cn-ads.trie" "../$DIR/cn-ads.bloom"
           cd ..
           rm "$DIR/cn-ads.raw"
           echo "Bundled CN rules version: $(cat $DIR/cn-ads.version)"
