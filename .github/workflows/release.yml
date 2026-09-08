@@ -67,6 +67,21 @@ jobs:
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
+      # Fallback delivery channel: commit the APKs to the apk-builds branch
+      # so they can be pulled over the git protocol even when the artifact
+      # blob storage CDN is unreachable from the local network.
+      - name: Push APKs to apk-builds branch
+        run: |
+          git config --global user.name "blockads-bot"
+          git config --global user.email "actions@users.noreply.github.com"
+          mkdir apkrepo && cd apkrepo
+          git init -b apk-builds
+          mkdir apks && cp ../app/build/outputs/apk/release/*.apk apks/
+          git add apks
+          git commit -m "apks run=${{ github.run_id }}"
+          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          git push -f origin apk-builds
+
       - name: Attach APKs to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
