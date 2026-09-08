@@ -11,6 +11,7 @@ import app.pwhs.blockads.data.entities.FilterList
 import app.pwhs.blockads.data.remote.FilterDownloadManager
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.plugins.timeout
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.client.statement.bodyAsText
 import io.ktor.utils.io.readAvailable
@@ -63,7 +64,6 @@ class FilterListRepository(
          * succeeded) to avoid mixing sources mid-update.
          */
         val CN_RULES_MIRRORS = listOf(
-            "https://registry.npmmirror.com/blockads-cn-rules/latest/files/dist",
             "https://cdn.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://fastly.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://gcore.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
@@ -526,7 +526,8 @@ class FilterListRepository(
         runCatching {
             downloadManager.downloadRawTo(
                 cnMirrorBase?.let { "$it/cn-ads.allowlist.txt" } ?: CN_RULES_ALLOWLIST_URL,
-                File(context.filesDir, "remote_filters/cn_allowlist.txt")
+                File(context.filesDir, "remote_filters/cn_allowlist.txt"),
+                timeoutMs = 30_000
             )
         }
         val stale = System.currentTimeMillis() - filter.lastUpdated > CN_RULES_TTL_MS
@@ -566,7 +567,8 @@ class FilterListRepository(
             val allowOk = runCatching {
                 downloadManager.downloadRawTo(
                     "$allowBase/cn-ads.allowlist.txt",
-                    File(context.filesDir, "remote_filters/cn_allowlist.txt")
+                    File(context.filesDir, "remote_filters/cn_allowlist.txt"),
+                    timeoutMs = 30_000
                 )
             }.getOrElse { false }
             if (!allowOk) {
@@ -594,7 +596,9 @@ class FilterListRepository(
     private suspend fun fetchRemoteCnRulesVersion(): Int {
         for (base in CN_RULES_MIRRORS) {
             try {
-                val v = client.get("$base/cn-ads.version").bodyAsText().trim().toIntOrNull() ?: 0
+                val v = client.get("$base/cn-ads.version") {
+                    timeout { requestTimeoutMillis = 8_000 }
+                }.bodyAsText().trim().toIntOrNull() ?: 0
                 if (v > 0) {
                     cnMirrorBase = base
                     Timber.d("CN rules mirror selected: %s (v%d)", base, v)
@@ -662,7 +666,8 @@ class FilterListRepository(
         val rawFile = File(context.filesDir, "remote_filters/${filter.id}.raw")
         val downloaded = try {
             downloadManager.downloadRawTo(
-                cnMirrorBase?.let { "$it/cn-ads.txt" } ?: CN_RULES_DIST_URL, rawFile)
+                cnMirrorBase?.let { "$it/cn-ads.txt" } ?: CN_RULES_DIST_URL, rawFile,
+                timeoutMs = 30_000)
         } catch (e: Exception) {
             Timber.w(e, "CN rules download failed")
             false

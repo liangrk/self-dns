@@ -4,6 +4,7 @@ import android.content.Context
 import app.pwhs.blockads.data.entities.FilterList
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
+import io.ktor.client.plugins.timeout
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.utils.io.readAvailable
 import kotlinx.coroutines.Dispatchers
@@ -117,10 +118,17 @@ class FilterDownloadManager(
     /**
      * Downloads [url] verbatim into [destFile] (no cache check). Returns
      * true on success. Used for raw rule text compiled on-device.
+     * [timeoutMs] caps the whole request when > 0 (per-request override).
      */
-    suspend fun downloadRawTo(url: String, destFile: File): Boolean = withContext(Dispatchers.IO) {
+    suspend fun downloadRawTo(
+        url: String,
+        destFile: File,
+        timeoutMs: Long = 0
+    ): Boolean = withContext(Dispatchers.IO) {
         try {
-            val response = client.get(url)
+            val response = client.get(url) {
+                if (timeoutMs > 0) timeout { requestTimeoutMillis = timeoutMs }
+            }
             val channel = response.bodyAsChannel()
             val tmp = File(destFile.parent, destFile.name + ".tmp")
             FileOutputStream(tmp).use { out ->
