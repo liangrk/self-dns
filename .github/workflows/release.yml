@@ -23,6 +23,24 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Set up Go (for CN rules compiler)
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Refresh bundled CN rules from CDN mirror
+        run: |
+          MIRROR="https://cdn.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist"
+          DIR=app/src/main/assets/cn_rules
+          curl -fsSL --retry 3 "$MIRROR/cn-ads.txt" -o "$DIR/cn-ads.raw"
+          curl -fsSL --retry 3 "$MIRROR/cn-ads.allowlist.txt" -o "$DIR/cn-ads.allowlist.txt"
+          curl -fsSL --retry 3 "$MIRROR/cn-ads.version" -o "$DIR/cn-ads.version"
+          cd tunnel
+          go run ./cmd_compile "$DIR/cn-ads.raw" ../$DIR/cn-ads.trie ../$DIR/cn-ads.bloom
+          cd ..
+          rm "$DIR/cn-ads.raw"
+          echo "Bundled CN rules version: $(cat $DIR/cn-ads.version)"
+
       - name: Restore signing config from Secrets
         env:
           KEYSTORE_B64: ${{ secrets.RELEASE_KEYSTORE_B64 }}
