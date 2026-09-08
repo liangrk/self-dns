@@ -72,6 +72,8 @@ jobs:
       # so they can be pulled over the git protocol even when the artifact
       # blob storage CDN is unreachable from the local network.
       - name: Push APKs to apk-builds branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --global user.name "blockads-bot"
           git config --global user.email "actions@users.noreply.github.com"
@@ -80,7 +82,7 @@ jobs:
           mkdir apks && cp ../app/build/outputs/apk/release/*.apk apks/
           git add apks
           git commit -m "apks run=${{ github.run_id }}"
-          git remote add origin "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}"
           git push -f origin apk-builds
 
       - name: Attach APKs to GitHub Release
