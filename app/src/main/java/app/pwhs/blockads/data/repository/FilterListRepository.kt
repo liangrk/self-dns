@@ -67,6 +67,10 @@ class FilterListRepository(
             "https://cdn.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://fastly.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
             "https://gcore.jsdelivr.net/gh/liangrk/blockads-cn-rules@main/dist",
+            // gh-proxy style CN accelerators (proxy raw.githubusercontent.com
+            // directly, no CDN cache lag); community-run, may rate-limit.
+            "https://ghfast.top/https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist",
+            "https://ghp.ci/https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist",
             "https://raw.githubusercontent.com/liangrk/blockads-cn-rules/main/dist"
         )
 
