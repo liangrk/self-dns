@@ -155,7 +155,11 @@
     <string name="region_cn">国内</string>
     <string name="region_global">海外</string>
     <string name="filter_recommended">推荐</string>
-    <string name="settings_ads_only">仅去广告</string>
+    <string name="ad_skip_title">自动跳过广告 (Beta)</string>
+    <string name="ad_skip_desc">通过无障碍服务自动点击开屏广告的"跳过"按钮,由 DNS 广告信号预先激活、瞬时执行。需要授予无障碍权限。</string>
+    <string name="ad_skip_service_desc">BlockAds 自动跳过开屏广告</string>
+    <string name="ad_skip_need_permission">需要无障碍权限 - 点击前往开启</string>
+
     <string name="settings_ads_only_desc">只拦截广告:停用成人、赌博、安全类规则,并关闭安全搜索与 YouTube 受限模式。</string>
     <string name="settings_safe_search">安全搜索</string>
     <string name="settings_safe_search_desc">在支持的搜索引擎（Google、Bing）上强制启用安全搜索</string>

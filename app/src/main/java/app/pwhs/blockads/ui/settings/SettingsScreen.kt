@@ -68,6 +68,7 @@ fun SettingsScreen(
     val autoUpdateWifiOnly by viewModel.autoUpdateWifiOnly.collectAsStateWithLifecycle()
     val autoUpdateNotification by viewModel.autoUpdateNotification.collectAsStateWithLifecycle()
     val crashReportingEnabled by viewModel.crashReportingEnabled.collectAsStateWithLifecycle()
+    val adSkipEnabled by viewModel.adSkipEnabled.collectAsStateWithLifecycle()
     val hideFromRecents by viewModel.hideFromRecents.collectAsStateWithLifecycle()
     val routingMode by viewModel.routingMode.collectAsStateWithLifecycle()
     val dnsResponseType by viewModel.dnsResponseType.collectAsStateWithLifecycle()
@@ -124,6 +125,7 @@ fun SettingsScreen(
                 safeSearchEnabled = safeSearchEnabled,
                 youtubeRestrictedMode = youtubeRestrictedMode,
                 adsOnlyMode = adsOnlyMode,
+                adSkipEnabled = adSkipEnabled,
 
                 dnsResponseType = dnsResponseType,
                 upstreamDNS = upstreamDNS,
@@ -134,6 +136,7 @@ fun SettingsScreen(
                 onSetNetworkSwitchDelaySec = { viewModel.setNetworkSwitchDelaySec(it) },
                 onSetSafeSearchEnabled = { viewModel.setSafeSearchEnabled(it) },
                 onSetAdsOnlyMode = { viewModel.setAdsOnlyMode(it) },
+                onSetAdSkipEnabled = { viewModel.setAdSkipEnabled(it) },
                 onSetYoutubeRestrictedMode = { viewModel.setYoutubeRestrictedMode(it) },
                 onShowDnsResponseTypeDialog = { showDnsResponseTypeDialog = true },
                 onNavigateToDNSProvider = onNavigateToDNSProvider,

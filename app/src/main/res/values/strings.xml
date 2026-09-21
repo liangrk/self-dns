@@ -197,6 +197,10 @@
     <string name="settings_auto_reconnect">Auto-reconnect</string>
     <string name="settings_auto_reconnect_desc">Restart ad blocker on device boot</string>
     <string name="settings_ads_only">Ads only</string>
+    <string name="ad_skip_title">Auto Skip Ads (Beta)</string>
+    <string name="ad_skip_desc">Auto-tap "Skip" buttons on splash ads via the accessibility service. Pre-activated by DNS ad signals for instant action. Requires the accessibility permission.</string>
+    <string name="ad_skip_service_desc">BlockAds auto skip splash ads</string>
+    <string name="ad_skip_need_permission">Accessibility permission required - tap to enable</string>
     <string name="settings_ads_only_desc">Only block ads. Disables adult, gambling and security lists plus SafeSearch and YouTube Restricted Mode.</string>
     <string name="region_all">All</string>
     <string name="region_cn">Mainland</string>

@@ -241,6 +241,13 @@ class GoTunnelAdapter(
     private fun setupLogCallback() {
         engine.setConnLogEnabled(recordLogProvider())
         engine.setLogCallback { domain, blocked, queryType, responseTimeMs, packageNameOrAppName, resolvedIP, blockedBy ->
+            // A blocked DNS query is a pre-activation signal for the
+            // ad-skip accessibility service: this app is loading an ad
+            // before its UI even appears. Must run before the record-log
+            // short-circuit so the signal works with logging off.
+            if (blocked) {
+                AdSkipManager.onDnsSignal(packageNameOrAppName)
+            }
             if (!recordLogProvider()) return@setLogCallback
 
             scope.launch(Dispatchers.IO) {

@@ -66,6 +66,20 @@
             android:exported="false"
             android:foregroundServiceType="specialUse" />
 
+        <!-- Ad-skip accessibility service (opt-in, no overlay/gesture) -->
+        <service
+            android:name=".service.AdSkipAccessibilityService"
+            android:exported="false"
+            android:label="@string/ad_skip_title"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/ad_skip_service_config" />
+        </service>
+
         <receiver
             android:name=".service.BootReceiver"
             android:exported="false">

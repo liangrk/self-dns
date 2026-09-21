@@ -74,6 +74,7 @@ class AppPreferences(private val context: Context) {
         private val KEY_PAUSED_TRUSTED_SSID = stringPreferencesKey("paused_trusted_ssid")
         private val KEY_RECORD_DNS_LOGS = booleanPreferencesKey("record_dns_logs")
         private val KEY_CN_RULES_VERSION = intPreferencesKey("cn_rules_version")
+        private val KEY_AD_SKIP_ENABLED = booleanPreferencesKey("ad_skip_enabled")
 
         const val ROUTING_MODE_DIRECT = "direct"
         const val ROUTING_MODE_WIREGUARD = "wireguard"
@@ -281,6 +282,10 @@ val filterUrl: Flow<String> = context.dataStore.data.map { prefs ->
 
     val recordDnsLogs: Flow<Boolean> = context.dataStore.data.map { prefs ->
         prefs[KEY_RECORD_DNS_LOGS] ?: true
+    }
+
+    val adSkipEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_AD_SKIP_ENABLED] ?: false
     }
 
     val firewallEnabled: Flow<Boolean> =
@@ -567,6 +572,12 @@ val filterUrl: Flow<String> = context.dataStore.data.map { prefs ->
     suspend fun setAccentColor(color: String) {
         context.dataStore.edit { prefs ->
             prefs[KEY_ACCENT_COLOR] = color
+        }
+    }
+
+    suspend fun setAdSkipEnabled(enabled: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_AD_SKIP_ENABLED] = enabled
         }
     }
 

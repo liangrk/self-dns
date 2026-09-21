@@ -19,6 +19,9 @@ import androidx.compose.material.icons.filled.Lan
 import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Replay
+import androidx.compose.ui.platform.LocalContext
+import android.content.Intent
+import app.pwhs.blockads.service.AdSkipAccessibilityService
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
@@ -45,6 +48,7 @@ fun ProtectionSection(
     safeSearchEnabled: Boolean,
     youtubeRestrictedMode: Boolean,
     adsOnlyMode: Boolean,
+    adSkipEnabled: Boolean,
 
     dnsResponseType: String,
     upstreamDNS: String,
@@ -54,6 +58,7 @@ fun ProtectionSection(
     onSetNetworkSwitchDelaySec: (Int) -> Unit,
     onSetSafeSearchEnabled: (Boolean) -> Unit,
     onSetAdsOnlyMode: (Boolean) -> Unit,
+    onSetAdSkipEnabled: (Boolean) -> Unit,
 
     onSetYoutubeRestrictedMode: (Boolean) -> Unit,
     onShowDnsResponseTypeDialog: () -> Unit,
@@ -153,6 +158,31 @@ fun ProtectionSection(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                 )
+                // Ad skip via accessibility (pre-activated by DNS signals)
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                )
+                val ctx = LocalContext.current
+                SettingsToggleItem(
+                    icon = Icons.Default.Search,
+                    title = stringResource(R.string.ad_skip_title),
+                    subtitle = if (adSkipEnabled && AdSkipAccessibilityService.instance == null)
+                        stringResource(R.string.ad_skip_need_permission)
+                    else stringResource(R.string.ad_skip_desc),
+                    isChecked = adSkipEnabled,
+                    onCheckedChange = { on ->
+                        onSetAdSkipEnabled(on)
+                        // Guide to the system accessibility page on enable.
+                        if (on && AdSkipAccessibilityService.instance == null) {
+                            try {
+                                ctx.startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                            } catch (_: Exception) {
+                            }
+                        }
+                    }
+                )
+                // Safe Search
                 SettingsToggleItem(
                     icon = Icons.Default.Search,
                     title = stringResource(R.string.settings_safe_search),

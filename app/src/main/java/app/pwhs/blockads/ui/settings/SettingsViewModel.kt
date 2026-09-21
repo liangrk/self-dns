@@ -68,6 +68,9 @@ class SettingsViewModel(
     val crashReportingEnabled: StateFlow<Boolean> = appPrefs.crashReportingEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
+    val adSkipEnabled: StateFlow<Boolean> = appPrefs.adSkipEnabled
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+
     val hideFromRecents: StateFlow<Boolean> = appPrefs.hideFromRecents
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -152,6 +155,10 @@ class SettingsViewModel(
 
     fun setAutoReconnect(enabled: Boolean) {
         viewModelScope.launch { appPrefs.setAutoReconnect(enabled) }
+    }
+
+    fun setAdSkipEnabled(enabled: Boolean) {
+        viewModelScope.launch { appPrefs.setAdSkipEnabled(enabled) }
     }
 
     fun setCrashReportingEnabled(enabled: Boolean) {
