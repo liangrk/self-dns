@@ -159,6 +159,17 @@
     <string name="ad_skip_desc">通过无障碍服务自动点击开屏广告的"跳过"按钮,由 DNS 广告信号预先激活、瞬时执行。需要授予无障碍权限。</string>
     <string name="ad_skip_service_desc">BlockAds 自动跳过开屏广告</string>
     <string name="ad_skip_need_permission">需要无障碍权限 - 点击前往开启</string>
+    <string name="ad_skip_home_title">自动跳过广告</string>
+    <string name="ad_skip_state_off">未开启 - 点击开启</string>
+    <string name="ad_skip_state_wait">等待无障碍授权</string>
+    <string name="ad_skip_state_running">运行中 - 广告出现瞬间自动点击跳过</string>
+    <string name="ad_skip_guide_title">开启自动跳过广告</string>
+    <string name="ad_skip_guide_step1">1. 点击下方"前往系统设置"</string>
+    <string name="ad_skip_guide_step2">2. 在无障碍列表中找到 BlockAds,点击进入</string>
+    <string name="ad_skip_guide_step3">3. 打开"使用 BlockAds"开关,然后返回本应用</string>
+    <string name="ad_skip_guide_open">前往系统设置</string>
+    <string name="ad_skip_guide_later">稍后再说</string>
+    <string name="ad_skip_disable_confirm">确定关闭自动跳过广告?</string>
 
     <string name="settings_ads_only_desc">只拦截广告:停用成人、赌博、安全类规则,并关闭安全搜索与 YouTube 受限模式。</string>
     <string name="settings_safe_search">安全搜索</string>

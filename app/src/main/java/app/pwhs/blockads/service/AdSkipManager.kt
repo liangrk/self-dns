@@ -10,6 +10,9 @@ import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import timber.log.Timber
 
+/** UI state for the home-screen ad-skip card. */
+enum class AdSkipUiState { OFF, NEED_PERMISSION, RUNNING }
+
 /**
  * Process-wide coordinator for the accessibility-based ad-skip feature.
  *

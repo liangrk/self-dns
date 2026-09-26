@@ -201,6 +201,17 @@
     <string name="ad_skip_desc">Auto-tap "Skip" buttons on splash ads via the accessibility service. Pre-activated by DNS ad signals for instant action. Requires the accessibility permission.</string>
     <string name="ad_skip_service_desc">BlockAds auto skip splash ads</string>
     <string name="ad_skip_need_permission">Accessibility permission required - tap to enable</string>
+    <string name="ad_skip_home_title">Auto Skip Ads</string>
+    <string name="ad_skip_state_off">Off - tap to enable</string>
+    <string name="ad_skip_state_wait">Waiting for accessibility permission</string>
+    <string name="ad_skip_state_running">Running - skips the moment an ad appears</string>
+    <string name="ad_skip_guide_title">Enable Auto Skip Ads</string>
+    <string name="ad_skip_guide_step1">1. Tap "Open Settings" below</string>
+    <string name="ad_skip_guide_step2">2. Find BlockAds in the accessibility list and tap it</string>
+    <string name="ad_skip_guide_step3">3. Turn ON the toggle (Use BlockAds) and come back</string>
+    <string name="ad_skip_guide_open">Open Settings</string>
+    <string name="ad_skip_guide_later">Later</string>
+    <string name="ad_skip_disable_confirm">Turn off Auto Skip Ads?</string>
     <string name="settings_ads_only_desc">Only block ads. Disables adult, gambling and security lists plus SafeSearch and YouTube Restricted Mode.</string>
     <string name="region_all">All</string>
     <string name="region_cn">Mainland</string>

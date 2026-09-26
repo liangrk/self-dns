@@ -23,6 +23,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import app.pwhs.blockads.service.AdSkipAccessibilityService
+import app.pwhs.blockads.service.AdSkipManager
+import app.pwhs.blockads.service.AdSkipUiState
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -33,7 +36,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class HomeViewModel(
-    appPrefs: AppPreferences,
+    private val appPrefs: AppPreferences,
     dnsLogDao: DnsLogDao,
     private val filterRepo: FilterListRepository,
     profileDao: ProtectionProfileDao,
@@ -52,6 +55,25 @@ class HomeViewModel(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "")
 
     // ── Reactive VPN state (derived from the single source of truth) ──
+    /** Ad-skip card state, refreshed by the screen while visible. */
+    private val _adSkipState = MutableStateFlow(AdSkipUiState.OFF)
+    val adSkipState: StateFlow<AdSkipUiState> = _adSkipState.asStateFlow()
+
+    fun refreshAdSkipState() {
+        _adSkipState.value = when {
+            AdSkipAccessibilityService.instance != null && AdSkipManager.enabled ->
+                AdSkipUiState.RUNNING
+            AdSkipManager.enabled -> AdSkipUiState.NEED_PERMISSION
+            else -> AdSkipUiState.OFF
+        }
+    }
+
+    fun setAdSkipEnabled(enabled: Boolean, context: Context) {
+        viewModelScope.launch { appPrefs.setAdSkipEnabled(enabled) }
+        _adSkipState.value = if (enabled) AdSkipUiState.NEED_PERMISSION
+        else AdSkipUiState.OFF
+    }
+
     val vpnEnabled: StateFlow<Boolean> = combine(
         AdBlockVpnService.state,
         RootProxyService.state

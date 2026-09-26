@@ -66,6 +66,7 @@ import app.pwhs.blockads.data.datastore.AppPreferences
 import app.pwhs.blockads.data.repository.FilterListRepository
 import app.pwhs.blockads.ui.home.component.DailyStatsChart
 import app.pwhs.blockads.ui.home.component.HomeAppBar
+import app.pwhs.blockads.ui.home.component.AdSkipPowerCard
 import app.pwhs.blockads.ui.home.component.PowerButton
 import app.pwhs.blockads.ui.home.component.StatCard
 import app.pwhs.blockads.ui.home.component.StatsChart
@@ -96,6 +97,7 @@ fun HomeScreen(
     onNavigateToProfileScreen: () -> Unit = {},
 ) {
     val vpnEnabled by viewModel.vpnEnabled.collectAsStateWithLifecycle()
+    val adSkipState by viewModel.adSkipState.collectAsStateWithLifecycle()
     val vpnConnecting by viewModel.vpnConnecting.collectAsStateWithLifecycle()
     val vpnStopping by viewModel.vpnStopping.collectAsStateWithLifecycle()
     val blockedCount by viewModel.blockedCount.collectAsStateWithLifecycle()
@@ -299,6 +301,12 @@ fun HomeScreen(
 
             val haptic = LocalHapticFeedback.current
             val isFirstVpnChange = remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            viewModel.refreshAdSkipState()
+            kotlinx.coroutines.delay(2000)
+        }
+    }
             LaunchedEffect(vpnEnabled) {
                 if (isFirstVpnChange.value) {
                     isFirstVpnChange.value = false
@@ -326,8 +334,15 @@ fun HomeScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(36.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
+            // Ad-skip accessibility card (tri-state, mirrors PowerButton)
+            AdSkipPowerCard(
+                state = adSkipState,
+                onToggle = { on -> viewModel.setAdSkipEnabled(on, context) }
+            )
+
+            Spacer(modifier = Modifier.height(36.dp))
 
             // Stats cards
             Row(
