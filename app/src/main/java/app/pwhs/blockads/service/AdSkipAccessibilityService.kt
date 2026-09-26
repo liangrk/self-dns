@@ -55,6 +55,7 @@ class AdSkipAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         instance = this
         AdSkipManager.init(applicationContext)
+        SkipRuleLoader.loadAsync(applicationContext)
         Timber.i("AdSkip service connected")
     }
 
@@ -175,9 +176,32 @@ class AdSkipAccessibilityService : AccessibilityService() {
                     }
                 }
             }
+            // Phase 2: app-specific rules from the validated remote table.
+            val appRules = SkipRuleLoader.rules[pkg]
+            if (appRules != null) {
+                for (t in appRules.texts) {
+                    val cands = root.findAccessibilityNodeInfosByText(t) ?: continue
+                    candCount += cands.size
+                    for (cand in cands) {
+                        if (!seen.add(cand)) continue
+                        val target = SkipRuleMatcher.findAppRuleTarget(cand, appRules)
+                        if (target != null && AdSkipManager.canTap(pkg)) {
+                            if (target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                                AdSkipManager.onTap(pkg)
+                                Timber.i("AdSkip app-rule tapped: pkg=%s", pkg)
+                            }
+                            return true
+                        }
+                    }
+                }
+                if (appRules.vids.isNotEmpty() || appRules.idSuffixes.isNotEmpty()) {
+                    tapByIdPattern(root, pkg, appRules)?.let { return true }
+                }
+            }
+
             Timber.d(
-                "AdSkip scan done: pkg=%s cands=%d active=%s",
-                pkg, candCount, AdSkipManager.isActive(pkg)
+                "AdSkip scan done: pkg=%s cands=%d active=%s remoteApps=%d",
+                pkg, candCount, AdSkipManager.isActive(pkg), SkipRuleLoader.rules.size
             )
             // No skip button found: if this window looks like an ad,
             // capture a sample so the rule set can learn it.
@@ -191,6 +215,38 @@ class AdSkipAccessibilityService : AccessibilityService() {
             Timber.e("AdSkip scan failed: %s", e.message ?: "")
             return false
         }
+    }
+
+    /**
+     * Limited BFS for app-specific vid/idSuffix patterns (system text
+     * search cannot match resource ids). Same caps as the sampler walk.
+     */
+    private fun tapByIdPattern(
+        root: AccessibilityNodeInfo,
+        pkg: String,
+        appRules: SkipRuleLoader.AppRules
+    ): Boolean {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        var visited = 0
+        while (queue.isNotEmpty() && visited < 300) {
+            val n = queue.removeFirst()
+            visited++
+            if (n.isVisibleToUser && AdSkipManager.canTap(pkg)) {
+                val target = SkipRuleMatcher.findAppRuleTarget(n, appRules)
+                if (target != null) {
+                    if (target.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+                        AdSkipManager.onTap(pkg)
+                        Timber.i("AdSkip id-rule tapped: pkg=%s", pkg)
+                    }
+                    return true
+                }
+            }
+            for (i in 0 until n.childCount) {
+                n.getChild(i)?.let { queue.add(it) }
+            }
+        }
+        return false
     }
 
     override fun onInterrupt() {}

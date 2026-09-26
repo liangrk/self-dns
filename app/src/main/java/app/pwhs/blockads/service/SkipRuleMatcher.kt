@@ -20,6 +20,19 @@ object SkipRuleMatcher {
     /** Resource-id fragments that strengthen a candidate. */
     private val SKIP_ID_HINTS = listOf("skip", "count_down", "countdown", "jump")
 
+    /** Exact resource-id suffix from the Pangolin (csj) splash SDK. */
+    private const val CSJ_SKIP_ID_SUFFIX = "tt_splash_skip_btn"
+
+    /**
+     * Countdown ids: contain both "count" and "down" but not "download"
+     * (aligned with the GKD subscription's global splash group).
+     */
+    fun isCountdownId(idFragment: String): Boolean {
+        val lower = idFragment.lowercase()
+        return lower.contains("count") && lower.contains("down") &&
+            !lower.contains("download")
+    }
+
     /** Terms inside a candidate text that mean "do NOT tap". */
     private val NEGATIVE_TERMS = listOf("loading", "详情", "更多")
 
@@ -35,9 +48,14 @@ object SkipRuleMatcher {
         return clickableSelfOrAncestor(node)
     }
 
+    /** Max label length for a skip match (GKD: text.length<10). */
+    private const val MAX_SKIP_TEXT_LEN = 10
+
     /** True when a label contains a skip term (case-insensitive). */
     fun isSkipText(text: String?): Boolean {
         if (text.isNullOrBlank()) return false
+        // A long label containing "skip" is prose, not a button.
+        if (text.length >= MAX_SKIP_TEXT_LEN) return false
         return SKIP_TERMS.any { text.contains(it, ignoreCase = true) }
     }
 
@@ -56,15 +74,17 @@ object SkipRuleMatcher {
     fun idMatches(node: AccessibilityNodeInfo): Boolean {
         val id = node.viewIdResourceName ?: return false
         val lower = id.substringAfterLast('/').lowercase()
-        return SKIP_ID_HINTS.any { lower.contains(it) }
+        return lower.endsWith(CSJ_SKIP_ID_SUFFIX) ||
+            SKIP_ID_HINTS.any { lower.contains(it) } ||
+            isCountdownId(lower)
     }
 
-    private fun hasNegativeContext(node: AccessibilityNodeInfo): Boolean {
+    fun hasNegativeContext(node: AccessibilityNodeInfo): Boolean {
         val t = (node.text?.toString() ?: "") + (node.contentDescription?.toString() ?: "")
         return NEGATIVE_TERMS.any { t.contains(it, ignoreCase = true) }
     }
 
-    private fun clickableSelfOrAncestor(
+    fun clickableSelfOrAncestor(
         node: AccessibilityNodeInfo,
         maxUp: Int = 4
     ): AccessibilityNodeInfo? {
@@ -76,5 +96,27 @@ object SkipRuleMatcher {
             up++
         }
         return null
+    }
+
+    /**
+     * App-specific match against the remote rule table (SkipRuleLoader):
+     * any text/desc contains-pattern, vid contains-pattern, or id
+     * endswith-pattern from the validated table. Same safety gates as the
+     * global path: visible, no negative context, clickable ancestor.
+     */
+    fun findAppRuleTarget(
+        node: AccessibilityNodeInfo,
+        rules: SkipRuleLoader.AppRules
+    ): AccessibilityNodeInfo? {
+        if (!node.isVisibleToUser) return null
+        val t = node.text?.toString()?.trim() ?: ""
+        val d = node.contentDescription?.toString()?.trim() ?: ""
+        val id = node.viewIdResourceName?.substringAfterLast('/') ?: ""
+        val matched = rules.texts.any { t.contains(it, true) || d.contains(it, true) } ||
+            rules.vids.any { id.contains(it, true) } ||
+            rules.idSuffixes.any { id.endsWith(it) }
+        if (!matched) return null
+        if (hasNegativeContext(node)) return null
+        return clickableSelfOrAncestor(node)
     }
 }
