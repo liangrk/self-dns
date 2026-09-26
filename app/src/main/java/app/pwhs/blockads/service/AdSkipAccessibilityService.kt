@@ -171,6 +171,9 @@ class AdSkipAccessibilityService : AccessibilityService() {
 
     override fun onDestroy() {
         if (instance === this) instance = null
+        // Cancel pending poll hops before killing the worker, otherwise
+        // the next postDelayed poll hits a shutdown executor and throws.
+        mainHandler.removeCallbacksAndMessages(null)
         worker.shutdownNow()
         super.onDestroy()
     }
