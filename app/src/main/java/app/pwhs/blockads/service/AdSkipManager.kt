@@ -32,9 +32,13 @@ object AdSkipManager {
     /** Max taps per package per pre-activation window (anti-loop guard). */
     private const val MAX_TAPS_PER_WINDOW = 2
 
+    /** Per-app ring buffer size for recently blocked domains. */
+    private const val DOMAIN_BUFFER_SIZE = 24
+
     private val active = ConcurrentHashMap<String, Long>()
     private val tapCooldown = ConcurrentHashMap<String, Long>()
     private val windowTaps = ConcurrentHashMap<String, AtomicInteger>()
+    private val recentDomains = ConcurrentHashMap<String, ArrayDeque<String>>()
 
     @Volatile
     var enabled: Boolean = false
@@ -62,10 +66,26 @@ object AdSkipManager {
     }
 
     /** Called from the Go DNS log callback (any thread, must be fast). */
-    fun onDnsSignal(packageName: String) {
+    fun onDnsSignal(packageName: String, domain: String = "") {
         if (!enabled) return
         if (!packageName.contains('.')) return
         active[packageName] = System.currentTimeMillis() + SIGNAL_TTL_MS
+        if (domain.isNotEmpty()) {
+            val q = recentDomains.getOrPut(packageName) { ArrayDeque() }
+            synchronized(q) {
+                if (q.size >= DOMAIN_BUFFER_SIZE) q.removeFirst()
+                q.addLast(domain)
+            }
+        }
+    }
+
+    /**
+     * Blocked domains seen recently for [packageName] (for the learning
+     * sampler to correlate an unlabeled ad screen with its ad networks).
+     */
+    fun recentBlockedDomains(packageName: String): List<String> {
+        val q = recentDomains[packageName] ?: return emptyList()
+        return synchronized(q) { q.toList() }
     }
 
     /** True while [packageName] sits inside a pre-activation window. */
@@ -100,6 +120,7 @@ object AdSkipManager {
         active.clear()
         windowTaps.clear()
         tapCooldown.clear()
+        recentDomains.clear()
     }
 
     /**
