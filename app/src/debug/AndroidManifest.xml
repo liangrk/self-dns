@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug-only manifest additions for the ad-skip test harness. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <activity
+            android:name="app.pwhs.blockads.AdSkipTestActivity"
+            android:exported="true" />
+    </application>
+</manifest>

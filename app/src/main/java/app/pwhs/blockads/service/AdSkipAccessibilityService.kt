@@ -100,7 +100,21 @@ class AdSkipAccessibilityService : AccessibilityService() {
                 scanAndTap(pkg, activity)
             }
         } else {
-            worker.execute { scanAndTap(pkg, activity) }
+            worker.execute {
+                val hit = scanAndTap(pkg, activity)
+                // Slow-rendering windows: without a DNS pre-activation the
+                // first scan often runs before the ad view exists, and
+                // CONTENT_CHANGED events alone would never re-scan. Two
+                // cheap follow-ups close that gap.
+                if (!hit && !AdSkipManager.isActive(pkg)) {
+                    mainHandler.postDelayed({
+                        worker.execute { scanAndTap(pkg, null) }
+                    }, 350)
+                    mainHandler.postDelayed({
+                        worker.execute { scanAndTap(pkg, null) }
+                    }, 900)
+                }
+            }
         }
     }
 
@@ -136,11 +150,19 @@ class AdSkipAccessibilityService : AccessibilityService() {
             if (rootPkg != null && rootPkg != pkg) return false
 
             val seen = HashSet<AccessibilityNodeInfo>()
+            var candCount = 0
             for (term in SkipRuleMatcher.SKIP_TERMS) {
                 val candidates = root.findAccessibilityNodeInfosByText(term) ?: continue
+                candCount += candidates.size
                 for (cand in candidates) {
                     if (!seen.add(cand)) continue
                     val target = SkipRuleMatcher.findTapTarget(cand)
+                    if (target != null) {
+                        Timber.i(
+                            "AdSkip cand: pkg=%s term=%s targetClick=%s",
+                            pkg, term, target.isClickable
+                        )
+                    }
                     if (target != null && AdSkipManager.canTap(pkg)) {
                         val ok = target.performAction(
                             AccessibilityNodeInfo.ACTION_CLICK
@@ -153,6 +175,10 @@ class AdSkipAccessibilityService : AccessibilityService() {
                     }
                 }
             }
+            Timber.d(
+                "AdSkip scan done: pkg=%s cands=%d active=%s",
+                pkg, candCount, AdSkipManager.isActive(pkg)
+            )
             // No skip button found: if this window looks like an ad,
             // capture a sample so the rule set can learn it.
             if (AdSkipManager.isActive(pkg)) {
