@@ -70,7 +70,7 @@
         <service
             android:name=".service.AdSkipAccessibilityService"
             android:exported="false"
-            android:label="@string/ad_skip_title"
+            android:label="@string/ad_skip_service_label"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

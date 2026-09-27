@@ -159,6 +159,9 @@ fun AdSkipPowerCard(
             confirmButton = {
                 TextButton(onClick = {
                     showGuide = false
+                    // Arm the feature now so that returning from the
+                    // system page lands straight on RUNNING.
+                    onToggle(true)
                     try {
                         context.startActivity(
                             Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
