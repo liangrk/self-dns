@@ -171,6 +171,8 @@
     <string name="ad_skip_guide_open">前往系统设置</string>
     <string name="ad_skip_guide_later">稍后再说</string>
     <string name="ad_skip_disable_confirm">确定关闭自动跳过广告?</string>
+    <string name="ad_skip_export_samples">导出学习样本</string>
+    <string name="ad_skip_export_samples_desc">分享采集到的未识别广告界面数据,用于规则优化</string>
 
     <string name="settings_ads_only_desc">只拦截广告:停用成人、赌博、安全类规则,并关闭安全搜索与 YouTube 受限模式。</string>
     <string name="settings_safe_search">安全搜索</string>

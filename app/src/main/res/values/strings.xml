@@ -213,6 +213,8 @@
     <string name="ad_skip_guide_open">Open Settings</string>
     <string name="ad_skip_guide_later">Later</string>
     <string name="ad_skip_disable_confirm">Turn off Auto Skip Ads?</string>
+    <string name="ad_skip_export_samples">Export learning samples</string>
+    <string name="ad_skip_export_samples_desc">Share unlabeled ad screens collected for rule synthesis</string>
     <string name="settings_ads_only_desc">Only block ads. Disables adult, gambling and security lists plus SafeSearch and YouTube Restricted Mode.</string>
     <string name="region_all">All</string>
     <string name="region_cn">Mainland</string>

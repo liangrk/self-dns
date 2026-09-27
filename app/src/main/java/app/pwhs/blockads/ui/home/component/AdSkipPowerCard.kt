@@ -56,6 +56,7 @@ fun AdSkipPowerCard(
 ) {
     val context = LocalContext.current
     var showGuide by remember { mutableStateOf(false) }
+    var showDisableConfirm by remember { mutableStateOf(false) }
 
     val active = state == AdSkipUiState.RUNNING
     val waiting = state == AdSkipUiState.NEED_PERMISSION
@@ -77,7 +78,7 @@ fun AdSkipPowerCard(
             .background(MaterialTheme.colorScheme.surface)
             .clickable {
                 when {
-                    active -> onToggle(false)
+                    active -> showDisableConfirm = true
                     else -> showGuide = true
                 }
             }
@@ -175,6 +176,26 @@ fun AdSkipPowerCard(
             dismissButton = {
                 TextButton(onClick = { showGuide = false }) {
                     Text(stringResource(R.string.ad_skip_guide_later))
+                }
+            }
+        )
+    }
+
+    if (showDisableConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDisableConfirm = false },
+            title = { Text(stringResource(R.string.ad_skip_disable_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDisableConfirm = false
+                    onToggle(false)
+                }) {
+                    Text(stringResource(android.R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDisableConfirm = false }) {
+                    Text(stringResource(android.R.string.cancel))
                 }
             }
         )

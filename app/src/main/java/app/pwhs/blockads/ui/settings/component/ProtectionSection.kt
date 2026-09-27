@@ -22,6 +22,13 @@ import androidx.compose.material.icons.filled.Replay
 import androidx.compose.ui.platform.LocalContext
 import android.content.Intent
 import app.pwhs.blockads.service.AdSkipAccessibilityService
+import app.pwhs.blockads.service.AdSkipSampleExporter
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.core.content.FileProvider
+import android.net.Uri
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Shield
@@ -182,6 +189,36 @@ fun ProtectionSection(
                         }
                     }
                 )
+                // Export self-learning samples (only when present)
+                val hasSamples = remember {
+                    AdSkipSampleExporter.hasSamples(ctx)
+                }
+                if (hasSamples) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                    )
+                    SettingItem(
+                        icon = Icons.Default.Search,
+                        title = stringResource(R.string.ad_skip_export_samples),
+                        desc = stringResource(R.string.ad_skip_export_samples_desc),
+                        onClick = {
+                            try {
+                                val uri = AdSkipSampleExporter.export(ctx)
+                                if (uri != null) {
+                                    val share = Intent(Intent.ACTION_SEND)
+                                    share.type = "application/zip"
+                                    share.putExtra(Intent.EXTRA_STREAM, uri)
+                                    share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                    ctx.startActivity(
+                                        Intent.createChooser(share, null)
+                                    )
+                                }
+                            } catch (_: Exception) {
+                            }
+                        }
+                    )
+                }
                 // Safe Search
                 SettingsToggleItem(
                     icon = Icons.Default.Search,
